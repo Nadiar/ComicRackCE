@@ -283,7 +283,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			miPasteList.Click += new EventHandler((sender, e) => PasteList());
         }
 
-		public ComicListLibraryBrowser(ComicLibrary library)
+        public ComicListLibraryBrowser(ComicLibrary library)
 			: this()
 		{
 			Library = library;
@@ -897,7 +897,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 				};
 				cmEditDevices.DropDownItems.Add(toolStripMenuItem);
 			}
-		}
+        }
 
 		private void cmEditDevices_Click(object sender, EventArgs e)
 		{
