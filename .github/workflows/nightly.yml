@@ -51,6 +51,10 @@ jobs:
         mkdir ComicRack\bin\Release\net48\_CommonRedist
         curl -L -o ComicRack\bin\Release\net48\_CommonRedist\vc_redist.x64.exe https://aka.ms/vs/17/release/vc_redist.x64.exe
 
+    - name: Get short sha
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
     - name: Compile installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.4
       with:
