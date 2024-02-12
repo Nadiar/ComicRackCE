@@ -2963,7 +2963,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			Program.StartProgram(ep.Path, args);
 		}
 
-		private void LayoutMenuOpening(object sender, CancelEventArgs e)
+        private void LayoutMenuOpening(object sender, CancelEventArgs e)
 		{
 			try
 			{
