@@ -1447,6 +1447,19 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			}
 		}
 
+		private bool isPasteListEnabled()
+		{
+            //Check if the clipboard contains data, if so enable the paste button.
+            try
+            {
+                return (Clipboard.ContainsData("ComicList") || Clipboard.ContainsText()) && ComicEditMode.CanEditList();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
 		private void PasteList()
 		{
 			if (!isPasteListEnabled())
