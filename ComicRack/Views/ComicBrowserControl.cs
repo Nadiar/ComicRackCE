@@ -37,46 +37,46 @@ using cYo.Projects.ComicRack.Viewer.Properties;
 
 namespace cYo.Projects.ComicRack.Viewer.Views
 {
-	public partial class ComicBrowserControl : SubView, IComicBrowser, IGetBookList, IRefreshDisplay, ISearchOptions, IDisplayWorkspace, IItemSize, ISettingsChanged
-	{
-		private class StackMatcher : ComicBookMatcher
-		{
-			private readonly HashSet<ComicBook> items;
+    public partial class ComicBrowserControl : SubView, IComicBrowser, IGetBookList, IRefreshDisplay, ISearchOptions, IDisplayWorkspace, IItemSize, ISettingsChanged
+    {
+        private class StackMatcher : ComicBookMatcher
+        {
+            private readonly HashSet<ComicBook> items;
 
-			public string Caption
-			{
-				get;
-				private set;
-			}
+            public string Caption
+            {
+                get;
+                private set;
+            }
 
-			public IGrouper<IViewableItem> Grouper
-			{
-				get;
-				private set;
-			}
+            public IGrouper<IViewableItem> Grouper
+            {
+                get;
+                private set;
+            }
 
-			public StackMatcher(IGrouper<IViewableItem> grouper, string caption, HashSet<ComicBook> items)
-			{
-				this.items = items;
-				Grouper = grouper;
-				Caption = caption;
-			}
+            public StackMatcher(IGrouper<IViewableItem> grouper, string caption, HashSet<ComicBook> items)
+            {
+                this.items = items;
+                Grouper = grouper;
+                Caption = caption;
+            }
 
-			public bool Match(ComicBook item)
-			{
-				return items.Contains(item);
-			}
+            public bool Match(ComicBook item)
+            {
+                return items.Contains(item);
+            }
 
-			public override IEnumerable<ComicBook> Match(IEnumerable<ComicBook> items)
-			{
-				return items.Where(Match);
-			}
+            public override IEnumerable<ComicBook> Match(IEnumerable<ComicBook> items)
+            {
+                return items.Where(Match);
+            }
 
-			public override object Clone()
-			{
-				return new StackMatcher(Grouper, Caption, items);
-			}
-		}
+            public override object Clone()
+            {
+                return new StackMatcher(Grouper, Caption, items);
+            }
+        }
 
 		private class CoverViewItemPropertyComparer : CoverViewItemComparer, IComicBookComparer
 		{
@@ -143,10 +143,10 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 				this.property = property;
 			}
 
-			public IEnumerable<IGroupInfo> GetGroups(IViewableItem item)
-			{
-				throw new NotImplementedException();
-			}
+            public IEnumerable<IGroupInfo> GetGroups(IViewableItem item)
+            {
+                throw new NotImplementedException();
+            }
 
 			public override IGroupInfo GetGroup(ComicBook item)
 			{
@@ -154,125 +154,125 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			}
 		}
 
-		private readonly string noneText;
+        private readonly string noneText;
 
-		private readonly string arrangedByText;
+        private readonly string arrangedByText;
 
-		private readonly string notArrangedText;
+        private readonly string notArrangedText;
 
-		private readonly string groupedByText;
+        private readonly string groupedByText;
 
-		private readonly string notGroupedText;
+        private readonly string notGroupedText;
 
-		private readonly string stackedByText;
+        private readonly string stackedByText;
 
-		private readonly string notStackedText;
+        private readonly string notStackedText;
 
-		private readonly string eComicText;
+        private readonly string eComicText;
 
-		private readonly string eComicsText;
+        private readonly string eComicsText;
 
-		private readonly string selectedText;
+        private readonly string selectedText;
 
-		private readonly string filteredText;
+        private readonly string filteredText;
 
-		private readonly string customFieldDescription;
+        private readonly string customFieldDescription;
 
-		private volatile bool bookListDirty;
+        private volatile bool bookListDirty;
 
-		private volatile bool updateGroupList;
+        private volatile bool updateGroupList;
 
-		private volatile int newGroupListWidth;
+        private volatile int newGroupListWidth;
 
-		private volatile int totalCount;
+        private volatile int totalCount;
 
-		private long totalSize;
+        private long totalSize;
 
-		private long selectedSize;
+        private long selectedSize;
 
-		private readonly CommandMapper commands = new CommandMapper();
+        private readonly CommandMapper commands = new CommandMapper();
 
-		private readonly Image groupUp = Resources.GroupUp;
+        private readonly Image groupUp = Resources.GroupUp;
 
-		private readonly Image groupDown = Resources.GroupDown;
+        private readonly Image groupDown = Resources.GroupDown;
 
-		private readonly Image sortUp = Resources.SortUp;
+        private readonly Image sortUp = Resources.SortUp;
 
-		private readonly Image sortDown = Resources.SortDown;
+        private readonly Image sortDown = Resources.SortDown;
 
-		private ToolStripMenuItem miCopyListSetup;
+        private ToolStripMenuItem miCopyListSetup;
 
-		private ToolStripMenuItem miPasteListSetup;
+        private ToolStripMenuItem miPasteListSetup;
 
-		private ComicBookMatcher quickFilter;
+        private ComicBookMatcher quickFilter;
 
-		private ComicBookMatcher stackFilter;
+        private ComicBookMatcher stackFilter;
 
-		private IViewableItem stackItem;
+        private IViewableItem stackItem;
 
-		private StacksConfig stacksConfig;
+        private StacksConfig stacksConfig;
 
-		private ItemViewConfig preStackConfig;
+        private ItemViewConfig preStackConfig;
 
-		private Point preStackScrollPosition;
+        private Point preStackScrollPosition;
 
-		private Guid preStackFocusedId;
+        private Guid preStackFocusedId;
 
-		private string currentStackName;
+        private string currentStackName;
 
-		private IComicBookListProvider bookList;
+        private IComicBookListProvider bookList;
 
-		private string quickSearch;
+        private string quickSearch;
 
-		private ComicBookAllPropertiesMatcher.MatcherOption quickSearchType;
+        private ComicBookAllPropertiesMatcher.MatcherOption quickSearchType;
 
-		private ComicBookAllPropertiesMatcher.ShowOptionType showOptionType;
+        private ComicBookAllPropertiesMatcher.ShowOptionType showOptionType;
 
-		private ComicBookAllPropertiesMatcher.ShowComicType showComicType;
+        private ComicBookAllPropertiesMatcher.ShowComicType showComicType;
 
-		private bool showOnlyDuplicates;
+        private bool showOnlyDuplicates;
 
-		private bool showGroupHeaders;
+        private bool showGroupHeaders;
 
-		private ComicsEditModes comicEditMode = ComicsEditModes.Default;
+        private ComicsEditModes comicEditMode = ComicsEditModes.Default;
 
-		private ThumbnailConfig thumbnailConfig;
+        private ThumbnailConfig thumbnailConfig;
 
-		private Image listBackgroundImage;
+        private Image listBackgroundImage;
 
-		private IGrouper<IViewableItem> oldStacker;
+        private IGrouper<IViewableItem> oldStacker;
 
-		private string[] quickSearchCueTexts;
+        private string[] quickSearchCueTexts;
 
-		private Point contextMenuMouseLocation;
+        private Point contextMenuMouseLocation;
 
-		private long contextMenuCloseTime;
+        private long contextMenuCloseTime;
 
-		private int oldQuickWidth;
+        private int oldQuickWidth;
 
-		private int savedOptimizeToolstripRight;
+        private int savedOptimizeToolstripRight;
 
-		private int savedOptimizeToolstripWitdh;
+        private int savedOptimizeToolstripWitdh;
 
-		private string backgroundImageSource;
+        private string backgroundImageSource;
 
-		private IBitmapCursor dragCursor;
+        private IBitmapCursor dragCursor;
 
-		private bool ownDrop;
+        private bool ownDrop;
 
-		private DragDropContainer dragBookContainer;
+        private DragDropContainer dragBookContainer;
 
-		private readonly ManualResetEvent abortBuildMenu = new ManualResetEvent(initialState: false);
+        private readonly ManualResetEvent abortBuildMenu = new ManualResetEvent(initialState: false);
 
-		private Thread buildMenuThread;
+        private Thread buildMenuThread;
 
-		private bool blockQuickSearchUpdate;
+        private bool blockQuickSearchUpdate;
 
-		private CoverViewItem toolTipItem;
+        private CoverViewItem toolTipItem;
 
-		private bool searchBrowserVisible;
+        private bool searchBrowserVisible;
 
-		private ComicLibrary library;
+        private ComicLibrary library;
 
 
 		[Browsable(false)]
@@ -880,14 +880,14 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			return columnsSorters?.AddLast(IdComparer)?.ToArray() ?? [firstComparer]; // Add the tie breaker comparer to ensure a stable sort
 		}
 
-		private void ComicItemAdded(object sender, SmartListChangedEventArgs<IViewableItem> e)
-		{
-			CoverViewItem coverViewItem = e.Item as CoverViewItem;
-			if (coverViewItem != null)
-			{
-				coverViewItem.ThumbnailConfig = ThumbnailConfig;
-			}
-		}
+        private void ComicItemAdded(object sender, SmartListChangedEventArgs<IViewableItem> e)
+        {
+            CoverViewItem coverViewItem = e.Item as CoverViewItem;
+            if (coverViewItem != null)
+            {
+                coverViewItem.ThumbnailConfig = ThumbnailConfig;
+            }
+        }
 
 		protected override void OnLoad(EventArgs e)
 		{
@@ -2849,10 +2849,10 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			}
 		}
 
-		private void tsListLayouts_DropDownOpening(object sender, EventArgs e)
-		{
-			base.Main.UpdateListConfigMenus(tsListLayouts.DropDownItems);
-		}
+        private void tsListLayouts_DropDownOpening(object sender, EventArgs e)
+        {
+            base.Main.UpdateListConfigMenus(tsListLayouts.DropDownItems);
+        }
 
 		private void contextMenuItems_Opening(object sender, CancelEventArgs e)
 		{
@@ -2964,47 +2964,47 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 		}
 
         private void LayoutMenuOpening(object sender, CancelEventArgs e)
-		{
-			try
-			{
-				IDataObject dataObject = Clipboard.GetDataObject();
-				miPasteListSetup.Enabled = dataObject?.GetDataPresent(typeof(DisplayListConfig)) ?? false;
-			}
-			catch
-			{
-				miPasteListSetup.Enabled = false;
-			}
-		}
+        {
+            try
+            {
+                IDataObject dataObject = Clipboard.GetDataObject();
+                miPasteListSetup.Enabled = dataObject?.GetDataPresent(typeof(DisplayListConfig)) ?? false;
+            }
+            catch
+            {
+                miPasteListSetup.Enabled = false;
+            }
+        }
 
-		private void contextExport_Opening(object sender, CancelEventArgs e)
-		{
-			while (contextExport.Items.Count > 2)
-			{
-				ToolStripItem toolStripItem = contextExport.Items[2];
-				contextExport.Items.RemoveAt(2);
-				toolStripItem.Dispose();
-			}
-			bool enabled = AllSelectedLinked();
-			AddConverterEntries(Program.ExportComicRackPresets, enabled);
-			AddConverterEntries(Program.Settings.ExportUserPresets, enabled);
-		}
+        private void contextExport_Opening(object sender, CancelEventArgs e)
+        {
+            while (contextExport.Items.Count > 2)
+            {
+                ToolStripItem toolStripItem = contextExport.Items[2];
+                contextExport.Items.RemoveAt(2);
+                toolStripItem.Dispose();
+            }
+            bool enabled = AllSelectedLinked();
+            AddConverterEntries(Program.ExportComicRackPresets, enabled);
+            AddConverterEntries(Program.Settings.ExportUserPresets, enabled);
+        }
 
-		private void AddConverterEntries(ICollection<ExportSetting> converterSettingCollection, bool enabled)
-		{
-			if (converterSettingCollection.Count == 0)
-			{
-				return;
-			}
-			contextExport.Items.Add(new ToolStripSeparator());
-			foreach (ExportSetting item in converterSettingCollection)
-			{
-				ExportSetting copy = item;
-				contextExport.Items.Add(item.Name, null, delegate
-				{
-					base.Main.ConvertComic(GetBookList(ComicBookFilterType.Selected, asArray: true), copy);
-				}).Enabled = enabled;
-			}
-		}
+        private void AddConverterEntries(ICollection<ExportSetting> converterSettingCollection, bool enabled)
+        {
+            if (converterSettingCollection.Count == 0)
+            {
+                return;
+            }
+            contextExport.Items.Add(new ToolStripSeparator());
+            foreach (ExportSetting item in converterSettingCollection)
+            {
+                ExportSetting copy = item;
+                contextExport.Items.Add(item.Name, null, delegate
+                {
+                    base.Main.ConvertComic(GetBookList(ComicBookFilterType.Selected, asArray: true), copy);
+                }).Enabled = enabled;
+            }
+        }
 
 		private void miAddList_DropDownOpening(object sender, EventArgs e)
 		{
@@ -3047,26 +3047,26 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			AddNoneEntry(toolStripMenuItem.DropDownItems);
 		}
 
-		private void tbbDuplicateList_DropDownOpening(object sender, EventArgs e)
-		{
-			if (Library == null)
-			{
-				return;
-			}
-			ToolStripDropDownItem toolStripDropDownItem = (ToolStripDropDownItem)sender;
-			FormUtility.SafeToolStripClear(toolStripDropDownItem.DropDownItems);
-			foreach (ComicListItemFolder item in Library.ComicLists.GetItems<ComicListItemFolder>())
-			{
-				ComicListItemFolder li = item;
-				int childLevel = Library.ComicLists.GetChildLevel((ComicListItem)li);
-				string str = new string(' ', childLevel * 4);
-				toolStripDropDownItem.DropDownItems.Add(str + li.Name, GetComicListImage(li), delegate
-				{
-					DuplicateList(li);
-				});
-			}
-			AddNoneEntry(toolStripDropDownItem.DropDownItems);
-		}
+        private void tbbDuplicateList_DropDownOpening(object sender, EventArgs e)
+        {
+            if (Library == null)
+            {
+                return;
+            }
+            ToolStripDropDownItem toolStripDropDownItem = (ToolStripDropDownItem)sender;
+            FormUtility.SafeToolStripClear(toolStripDropDownItem.DropDownItems);
+            foreach (ComicListItemFolder item in Library.ComicLists.GetItems<ComicListItemFolder>())
+            {
+                ComicListItemFolder li = item;
+                int childLevel = Library.ComicLists.GetChildLevel((ComicListItem)li);
+                string str = new string(' ', childLevel * 4);
+                toolStripDropDownItem.DropDownItems.Add(str + li.Name, GetComicListImage(li), delegate
+                {
+                    DuplicateList(li);
+                });
+            }
+            AddNoneEntry(toolStripDropDownItem.DropDownItems);
+        }
 
 		private void miShowInList_DropDownOpening(object sender, EventArgs e)
 		{
@@ -3133,26 +3133,26 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			});
 		}
 
-		private void miShowInList_DropDownClosed(object sender, EventArgs e)
-		{
-			abortBuildMenu.Set();
-		}
+        private void miShowInList_DropDownClosed(object sender, EventArgs e)
+        {
+            abortBuildMenu.Set();
+        }
 
-		private void ShowBookInList(ComicListItem list, ComicBook cb)
-		{
-			if (base.Main != null)
-			{
-				base.Main.ShowBookInList(Library, list, cb, switchToList: true);
-			}
-		}
+        private void ShowBookInList(ComicListItem list, ComicBook cb)
+        {
+            if (base.Main != null)
+            {
+                base.Main.ShowBookInList(Library, list, cb, switchToList: true);
+            }
+        }
 
-		private void AddNoneEntry(ToolStripItemCollection ic)
-		{
-			if (ic.Count == 0)
-			{
-				ic.Add(TR.Default["None", "None"]).Enabled = false;
-			}
-		}
+        private void AddNoneEntry(ToolStripItemCollection ic)
+        {
+            if (ic.Count == 0)
+            {
+                ic.Add(TR.Default["None", "None"]).Enabled = false;
+            }
+        }
 
 		private Image GetComicListImage(ComicListItem cli)
 		{
@@ -3173,66 +3173,66 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			}
 		}
 
-		public IEnumerable<ComicBook> GetBookList(ComicBookFilterType cbft, bool asArray)
-		{
-			if (asArray)
-			{
-				cbft |= ComicBookFilterType.AsArray;
-			}
-			return GetBookList(cbft);
-		}
+        public IEnumerable<ComicBook> GetBookList(ComicBookFilterType cbft, bool asArray)
+        {
+            if (asArray)
+            {
+                cbft |= ComicBookFilterType.AsArray;
+            }
+            return GetBookList(cbft);
+        }
 
-		protected virtual void OnCurrentBookListChanged()
-		{
-			bookSelectorPanel.ClearNot();
-			bookListDirty = true;
-			if (this.CurrentBookListChanged != null)
-			{
-				this.CurrentBookListChanged(this, EventArgs.Empty);
-			}
-		}
+        protected virtual void OnCurrentBookListChanged()
+        {
+            bookSelectorPanel.ClearNot();
+            bookListDirty = true;
+            if (this.CurrentBookListChanged != null)
+            {
+                this.CurrentBookListChanged(this, EventArgs.Empty);
+            }
+        }
 
-		protected virtual void OnQuickSearchChanged()
-		{
-			if (tsQuickSearch.TextBox.Text != quickSearch)
-			{
-				tsQuickSearch.TextBox.Text = quickSearch;
-			}
-			if (!blockQuickSearchUpdate)
-			{
-				quickSearchTimer.Stop();
-				quickSearchTimer.Start();
-				if (this.QuickSearchChanged != null)
-				{
-					this.QuickSearchChanged(this, EventArgs.Empty);
-				}
-			}
-		}
+        protected virtual void OnQuickSearchChanged()
+        {
+            if (tsQuickSearch.TextBox.Text != quickSearch)
+            {
+                tsQuickSearch.TextBox.Text = quickSearch;
+            }
+            if (!blockQuickSearchUpdate)
+            {
+                quickSearchTimer.Stop();
+                quickSearchTimer.Start();
+                if (this.QuickSearchChanged != null)
+                {
+                    this.QuickSearchChanged(this, EventArgs.Empty);
+                }
+            }
+        }
 
-		protected virtual void OnSearchBrowserVisibleChanged()
-		{
-			IMatcher<ComicBook> currentMatcher = bookSelectorPanel.CurrentMatcher;
-			if (searchBrowserContainer.Expanded)
-			{
-				searchBrowserContainer.Expanded = SearchBrowserVisible;
-			}
-			FillBookSelector();
-			if (!searchBrowserContainer.Expanded)
-			{
-				searchBrowserContainer.Expanded = SearchBrowserVisible;
-			}
-			FillBookList();
-			if (this.SearchBrowserVisibleChanged != null)
-			{
-				this.SearchBrowserVisibleChanged(this, EventArgs.Empty);
-			}
-		}
+        protected virtual void OnSearchBrowserVisibleChanged()
+        {
+            IMatcher<ComicBook> currentMatcher = bookSelectorPanel.CurrentMatcher;
+            if (searchBrowserContainer.Expanded)
+            {
+                searchBrowserContainer.Expanded = SearchBrowserVisible;
+            }
+            FillBookSelector();
+            if (!searchBrowserContainer.Expanded)
+            {
+                searchBrowserContainer.Expanded = SearchBrowserVisible;
+            }
+            FillBookList();
+            if (this.SearchBrowserVisibleChanged != null)
+            {
+                this.SearchBrowserVisibleChanged(this, EventArgs.Empty);
+            }
+        }
 
-		private void toolTip_Popup(object sender, PopupEventArgs e)
-		{
-			e.ToolTipSize = new Size(360, 120);
-			e.Cancel = !Program.Settings.ShowToolTips || toolTipItem == null || itemView.ItemViewMode == ItemViewMode.Tile;
-		}
+        private void toolTip_Popup(object sender, PopupEventArgs e)
+        {
+            e.ToolTipSize = new Size(360, 120);
+            e.Cancel = !Program.Settings.ShowToolTips || toolTipItem == null || itemView.ItemViewMode == ItemViewMode.Tile;
+        }
 
 		private void toolTip_Draw(object sender, DrawToolTipEventArgs e)
 		{
@@ -3267,35 +3267,35 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			}
 		}
 
-		private void foundView_MouseLeave(object sender, EventArgs e)
-		{
-			toolTip.SetToolTip(this, null);
-		}
+        private void foundView_MouseLeave(object sender, EventArgs e)
+        {
+            toolTip.SetToolTip(this, null);
+        }
 
-		private void foundView_MouseHover(object sender, EventArgs e)
-		{
-			Point point = itemView.PointToClient(Cursor.Position);
-			toolTipItem = itemView.ItemHitTest(point.X, point.Y) as CoverViewItem;
-			if (toolTipItem != null && toolTipItem.Comic != null)
-			{
-				string text = toolTipItem.Comic.Id.ToString();
-				if (toolTip.GetToolTip(itemView) != text && Program.Settings.ShowToolTips)
-				{
-					toolTip.SetToolTip(itemView, text);
-				}
-			}
-		}
+        private void foundView_MouseHover(object sender, EventArgs e)
+        {
+            Point point = itemView.PointToClient(Cursor.Position);
+            toolTipItem = itemView.ItemHitTest(point.X, point.Y) as CoverViewItem;
+            if (toolTipItem != null && toolTipItem.Comic != null)
+            {
+                string text = toolTipItem.Comic.Id.ToString();
+                if (toolTip.GetToolTip(itemView) != text && Program.Settings.ShowToolTips)
+                {
+                    toolTip.SetToolTip(itemView, text);
+                }
+            }
+        }
 
-		private void foundView_MouseMove(object sender, MouseEventArgs e)
-		{
-			itemView.ResetMouse();
-		}
+        private void foundView_MouseMove(object sender, MouseEventArgs e)
+        {
+            itemView.ResetMouse();
+        }
 
-		public void RefreshDisplay()
-		{
-			AutomaticProgressDialog.Process(this, TR.Messages["GettingList", "Getting Books List"], TR.Messages["GettingListText", "Retrieving all Books from the selected folder"], 1000, BookList.Refresh, AutomaticProgressDialogOptions.EnableCancel);
-			FillBookList();
-		}
+        public void RefreshDisplay()
+        {
+            AutomaticProgressDialog.Process(this, TR.Messages["GettingList", "Getting Books List"], TR.Messages["GettingListText", "Retrieving all Books from the selected folder"], 1000, BookList.Refresh, AutomaticProgressDialogOptions.EnableCancel);
+            FillBookList();
+        }
 
 		public void SettingsChanged()
 		{
@@ -3305,144 +3305,144 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			FillBookList();
 		}
 
-		public void FocusQuickSearch()
-		{
-			tsQuickSearch.TextBox.Focus();
-		}
+        public void FocusQuickSearch()
+        {
+            tsQuickSearch.TextBox.Focus();
+        }
 
-		public void SetWorkspace(DisplayWorkspace ws)
-		{
-			tsQuickSearch.TextBox.AutoCompleteList.AddRange(Program.Settings.QuickSearchList.ToArray());
-		}
+        public void SetWorkspace(DisplayWorkspace ws)
+        {
+            tsQuickSearch.TextBox.AutoCompleteList.AddRange(Program.Settings.QuickSearchList.ToArray());
+        }
 
-		public void StoreWorkspace(DisplayWorkspace ws)
-		{
-			if (bookList == null)
-			{
-				return;
-			}
-			UpdateViewConfig();
-			if (!base.Disposing && tsQuickSearch.TextBox != null)
-			{
-				try
-				{
-					HashSet<string> collection = new HashSet<string>(tsQuickSearch.TextBox.AutoCompleteList.Cast<string>());
-					Program.Settings.QuickSearchList.Clear();
-					Program.Settings.QuickSearchList.AddRange(collection);
-				}
-				catch
-				{
-				}
-			}
-		}
+        public void StoreWorkspace(DisplayWorkspace ws)
+        {
+            if (bookList == null)
+            {
+                return;
+            }
+            UpdateViewConfig();
+            if (!base.Disposing && tsQuickSearch.TextBox != null)
+            {
+                try
+                {
+                    HashSet<string> collection = new HashSet<string>(tsQuickSearch.TextBox.AutoCompleteList.Cast<string>());
+                    Program.Settings.QuickSearchList.Clear();
+                    Program.Settings.QuickSearchList.AddRange(collection);
+                }
+                catch
+                {
+                }
+            }
+        }
 
-		private void UpdateViewConfig()
-		{
-			if (DisableViewConfigUpdate)
-			{
-				return;
-			}
-			IDisplayListConfig displayListConfig = bookList.QueryService<IDisplayListConfig>();
-			if (displayListConfig != null)
-			{
-				CoverViewItem coverViewItem = stackItem as CoverViewItem;
-				if (coverViewItem != null)
-				{
-					displayListConfig.Display = new DisplayListConfig(preStackConfig, ThumbnailConfig, null, stacksConfig, backgroundImageSource)
-					{
-						ScrollPosition = preStackScrollPosition,
-						FocusedComicId = preStackFocusedId,
-						StackedComicId = coverViewItem.Comic.Id,
-						StackScrollPosition = itemView.ScrollPosition,
-						StackFocusedComicId = GetFocusedId()
-					};
-				}
-				else
-				{
-					displayListConfig.Display = new DisplayListConfig(itemView.ViewConfig, ThumbnailConfig, null, stacksConfig, backgroundImageSource)
-					{
-						ScrollPosition = itemView.ScrollPosition,
-						FocusedComicId = GetFocusedId()
-					};
-				}
-				displayListConfig.Display.QuickSearch = QuickSearch;
-				displayListConfig.Display.QuickSearchType = QuickSearchType;
-				displayListConfig.Display.ShowOptionType = ShowOptionType;
-				displayListConfig.Display.ShowComicType = ShowComicType;
-				displayListConfig.Display.ShowOnlyDuplicates = ShowOnlyDuplicates;
-				displayListConfig.Display.ShowGroupHeaders = ShowGroupHeaders;
-				displayListConfig.Display.ShowGroupHeadersWidth = ((newGroupListWidth != 0) ? newGroupListWidth : (browserContainer.ClientRectangle.Width - browserContainer.SplitterDistance));
-			}
-		}
+        private void UpdateViewConfig()
+        {
+            if (DisableViewConfigUpdate)
+            {
+                return;
+            }
+            IDisplayListConfig displayListConfig = bookList.QueryService<IDisplayListConfig>();
+            if (displayListConfig != null)
+            {
+                CoverViewItem coverViewItem = stackItem as CoverViewItem;
+                if (coverViewItem != null)
+                {
+                    displayListConfig.Display = new DisplayListConfig(preStackConfig, ThumbnailConfig, null, stacksConfig, backgroundImageSource)
+                    {
+                        ScrollPosition = preStackScrollPosition,
+                        FocusedComicId = preStackFocusedId,
+                        StackedComicId = coverViewItem.Comic.Id,
+                        StackScrollPosition = itemView.ScrollPosition,
+                        StackFocusedComicId = GetFocusedId()
+                    };
+                }
+                else
+                {
+                    displayListConfig.Display = new DisplayListConfig(itemView.ViewConfig, ThumbnailConfig, null, stacksConfig, backgroundImageSource)
+                    {
+                        ScrollPosition = itemView.ScrollPosition,
+                        FocusedComicId = GetFocusedId()
+                    };
+                }
+                displayListConfig.Display.QuickSearch = QuickSearch;
+                displayListConfig.Display.QuickSearchType = QuickSearchType;
+                displayListConfig.Display.ShowOptionType = ShowOptionType;
+                displayListConfig.Display.ShowComicType = ShowComicType;
+                displayListConfig.Display.ShowOnlyDuplicates = ShowOnlyDuplicates;
+                displayListConfig.Display.ShowGroupHeaders = ShowGroupHeaders;
+                displayListConfig.Display.ShowGroupHeadersWidth = ((newGroupListWidth != 0) ? newGroupListWidth : (browserContainer.ClientRectangle.Width - browserContainer.SplitterDistance));
+            }
+        }
 
-		private Guid GetFocusedId()
-		{
-			return ((itemView.FocusedItem ?? itemView.SelectedItems.FirstOrDefault()) as CoverViewItem)?.Comic.Id ?? Guid.Empty;
-		}
+        private Guid GetFocusedId()
+        {
+            return ((itemView.FocusedItem ?? itemView.SelectedItems.FirstOrDefault()) as CoverViewItem)?.Comic.Id ?? Guid.Empty;
+        }
 
-		private void SetFocusedItem(Guid id)
-		{
-			if (!(id == Guid.Empty))
-			{
-				CoverViewItem coverViewItem = itemView.DisplayedItems.OfType<CoverViewItem>().FirstOrDefault((CoverViewItem ci) => ci.Comic.Id == id);
-				if (coverViewItem != null)
-				{
-					coverViewItem.Focused = true;
-					coverViewItem.Selected = true;
-					coverViewItem.EnsureVisible();
-				}
-			}
-		}
+        private void SetFocusedItem(Guid id)
+        {
+            if (!(id == Guid.Empty))
+            {
+                CoverViewItem coverViewItem = itemView.DisplayedItems.OfType<CoverViewItem>().FirstOrDefault((CoverViewItem ci) => ci.Comic.Id == id);
+                if (coverViewItem != null)
+                {
+                    coverViewItem.Focused = true;
+                    coverViewItem.Selected = true;
+                    coverViewItem.EnsureVisible();
+                }
+            }
+        }
 
-		public bool SelectComic(ComicBook comic)
-		{
-			CloseStack(withUpdate: true);
-			CoverViewItem coverViewItem = itemView.DisplayedItems.OfType<CoverViewItem>().FirstOrDefault((CoverViewItem c) => (!itemView.IsStack(c)) ? (c.Comic == comic) : (itemView.GetStackItems(c).OfType<CoverViewItem>().FirstOrDefault((CoverViewItem sc) => sc.Comic == comic) != null));
-			if (coverViewItem == null)
-			{
-				if (string.IsNullOrEmpty(QuickSearch) && ShowOptionType == ComicBookAllPropertiesMatcher.ShowOptionType.All && ShowComicType == ComicBookAllPropertiesMatcher.ShowComicType.All && !ShowOnlyDuplicates)
-				{
-					return false;
-				}
-				QuickSearch = string.Empty;
-				ShowOptionType = ComicBookAllPropertiesMatcher.ShowOptionType.All;
-				ShowComicType = ComicBookAllPropertiesMatcher.ShowComicType.All;
-				ShowOnlyDuplicates = false;
-				UpdateSearch();
-				return SelectComic(comic);
-			}
-			if (itemView.IsStack(coverViewItem))
-			{
-				OpenStack(coverViewItem);
-				coverViewItem = itemView.DisplayedItems.OfType<CoverViewItem>().FirstOrDefault((CoverViewItem c) => c.Comic == comic);
-			}
-			itemView.SelectAll(selectionState: false);
-			if (coverViewItem != null)
-			{
-				coverViewItem.Selected = true;
-				coverViewItem.Focused = true;
-				coverViewItem.EnsureVisible();
-			}
-			return true;
-		}
+        public bool SelectComic(ComicBook comic)
+        {
+            CloseStack(withUpdate: true);
+            CoverViewItem coverViewItem = itemView.DisplayedItems.OfType<CoverViewItem>().FirstOrDefault((CoverViewItem c) => (!itemView.IsStack(c)) ? (c.Comic == comic) : (itemView.GetStackItems(c).OfType<CoverViewItem>().FirstOrDefault((CoverViewItem sc) => sc.Comic == comic) != null));
+            if (coverViewItem == null)
+            {
+                if (string.IsNullOrEmpty(QuickSearch) && ShowOptionType == ComicBookAllPropertiesMatcher.ShowOptionType.All && ShowComicType == ComicBookAllPropertiesMatcher.ShowComicType.All && !ShowOnlyDuplicates)
+                {
+                    return false;
+                }
+                QuickSearch = string.Empty;
+                ShowOptionType = ComicBookAllPropertiesMatcher.ShowOptionType.All;
+                ShowComicType = ComicBookAllPropertiesMatcher.ShowComicType.All;
+                ShowOnlyDuplicates = false;
+                UpdateSearch();
+                return SelectComic(comic);
+            }
+            if (itemView.IsStack(coverViewItem))
+            {
+                OpenStack(coverViewItem);
+                coverViewItem = itemView.DisplayedItems.OfType<CoverViewItem>().FirstOrDefault((CoverViewItem c) => c.Comic == comic);
+            }
+            itemView.SelectAll(selectionState: false);
+            if (coverViewItem != null)
+            {
+                coverViewItem.Selected = true;
+                coverViewItem.Focused = true;
+                coverViewItem.EnsureVisible();
+            }
+            return true;
+        }
 
-		public bool SelectComics(IEnumerable<ComicBook> books)
-		{
-			bool flag = true;
-			HashSet<ComicBook> hashSet = new HashSet<ComicBook>(books);
-			UpdatePending();
-			itemView.SelectAll(selectionState: false);
-			foreach (CoverViewItem displayedItem in itemView.DisplayedItems)
-			{
-				displayedItem.Selected = hashSet.Contains(displayedItem.Comic);
-				if (flag && displayedItem.Selected)
-				{
-					displayedItem.EnsureVisible();
-				}
-				flag = false;
-			}
-			return true;
-		}
+        public bool SelectComics(IEnumerable<ComicBook> books)
+        {
+            bool flag = true;
+            HashSet<ComicBook> hashSet = new HashSet<ComicBook>(books);
+            UpdatePending();
+            itemView.SelectAll(selectionState: false);
+            foreach (CoverViewItem displayedItem in itemView.DisplayedItems)
+            {
+                displayedItem.Selected = hashSet.Contains(displayedItem.Comic);
+                if (flag && displayedItem.Selected)
+                {
+                    displayedItem.EnsureVisible();
+                }
+                flag = false;
+            }
+            return true;
+        }
 
 		public IEnumerable<ComicBook> GetBookList(ComicBookFilterType cbft)
 		{
