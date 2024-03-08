@@ -17,6 +17,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="PDFiumSharp, Version=1.1.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>DLL\PDFiumSharp.dll</HintPath>
+    </Reference>
     <Reference Include="sharpPDF, Version=1.0.3755.1862, Culture=neutral, PublicKeyToken=ff55e618a43684c3, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>DLL\sharpPDF.dll</HintPath>
@@ -98,6 +102,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="DLL\PDFiumSharp.dll" />
     <Content Include="DLL\sharpPDF.dll" />
   </ItemGroup>
   <ItemGroup>
