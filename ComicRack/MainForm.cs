@@ -336,9 +336,9 @@ namespace cYo.Projects.ComicRack.Viewer
 
 		private Rectangle undockedReaderBounds;
 
-		private FormWindowState undockedReaderState;
+        private FormWindowState undockedReaderState;
 
-		private bool shieldReaderFormClosing;
+        private bool shieldReaderFormClosing;
 
 		private Image addTabImage = Resources.AddTab;
 
