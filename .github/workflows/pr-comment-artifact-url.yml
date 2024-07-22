@@ -65,8 +65,7 @@ jobs:
         uses: peter-evans/find-comment@v3
         id: find-comment
         with:
-          # issue-number: ${{ env.PR_NUMBER }} # empty from a forked repo
-          issue-number: ${{ env.PR_ID }}
+          issue-number: ${{ env.PR_NUMBER }}
           comment-author: 'github-actions[bot]'
 
       - name: Update Comment
