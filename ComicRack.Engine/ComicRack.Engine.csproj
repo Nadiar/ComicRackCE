@@ -90,6 +90,9 @@
     <PackageReference Include="PDFiumSharpV2">
       <Version>1.1.4</Version>
     </PackageReference>
+    <PackageReference Include="PDFiumSharpV2">
+      <Version>1.1.4</Version>
+    </PackageReference>
     <PackageReference Include="PolySharp">
       <Version>1.14.1</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
