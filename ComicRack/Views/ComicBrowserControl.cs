@@ -37,46 +37,46 @@ using cYo.Projects.ComicRack.Viewer.Properties;
 
 namespace cYo.Projects.ComicRack.Viewer.Views
 {
-    public partial class ComicBrowserControl : SubView, IComicBrowser, IGetBookList, IRefreshDisplay, ISearchOptions, IDisplayWorkspace, IItemSize, ISettingsChanged
-    {
-        private class StackMatcher : ComicBookMatcher
-        {
-            private readonly HashSet<ComicBook> items;
+	public partial class ComicBrowserControl : SubView, IComicBrowser, IGetBookList, IRefreshDisplay, ISearchOptions, IDisplayWorkspace, IItemSize, ISettingsChanged
+	{
+		private class StackMatcher : ComicBookMatcher
+		{
+			private readonly HashSet<ComicBook> items;
 
-            public string Caption
-            {
-                get;
-                private set;
-            }
+			public string Caption
+			{
+				get;
+				private set;
+			}
 
-            public IGrouper<IViewableItem> Grouper
-            {
-                get;
-                private set;
-            }
+			public IGrouper<IViewableItem> Grouper
+			{
+				get;
+				private set;
+			}
 
-            public StackMatcher(IGrouper<IViewableItem> grouper, string caption, HashSet<ComicBook> items)
-            {
-                this.items = items;
-                Grouper = grouper;
-                Caption = caption;
-            }
+			public StackMatcher(IGrouper<IViewableItem> grouper, string caption, HashSet<ComicBook> items)
+			{
+				this.items = items;
+				Grouper = grouper;
+				Caption = caption;
+			}
 
-            public bool Match(ComicBook item)
-            {
-                return items.Contains(item);
-            }
+			public bool Match(ComicBook item)
+			{
+				return items.Contains(item);
+			}
 
-            public override IEnumerable<ComicBook> Match(IEnumerable<ComicBook> items)
-            {
-                return items.Where(Match);
-            }
+			public override IEnumerable<ComicBook> Match(IEnumerable<ComicBook> items)
+			{
+				return items.Where(Match);
+			}
 
-            public override object Clone()
-            {
-                return new StackMatcher(Grouper, Caption, items);
-            }
-        }
+			public override object Clone()
+			{
+				return new StackMatcher(Grouper, Caption, items);
+			}
+		}
 
 		private class CoverViewItemPropertyComparer : CoverViewItemComparer, IComicBookComparer
 		{
@@ -143,10 +143,10 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 				this.property = property;
 			}
 
-            public IEnumerable<IGroupInfo> GetGroups(IViewableItem item)
-            {
-                throw new NotImplementedException();
-            }
+			public IEnumerable<IGroupInfo> GetGroups(IViewableItem item)
+			{
+				throw new NotImplementedException();
+			}
 
 			public override IGroupInfo GetGroup(ComicBook item)
 			{
@@ -154,125 +154,125 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			}
 		}
 
-        private readonly string noneText;
+		private readonly string noneText;
 
-        private readonly string arrangedByText;
+		private readonly string arrangedByText;
 
-        private readonly string notArrangedText;
+		private readonly string notArrangedText;
 
-        private readonly string groupedByText;
+		private readonly string groupedByText;
 
-        private readonly string notGroupedText;
+		private readonly string notGroupedText;
 
-        private readonly string stackedByText;
+		private readonly string stackedByText;
 
-        private readonly string notStackedText;
+		private readonly string notStackedText;
 
-        private readonly string eComicText;
+		private readonly string eComicText;
 
-        private readonly string eComicsText;
+		private readonly string eComicsText;
 
-        private readonly string selectedText;
+		private readonly string selectedText;
 
-        private readonly string filteredText;
+		private readonly string filteredText;
 
-        private readonly string customFieldDescription;
+		private readonly string customFieldDescription;
 
-        private volatile bool bookListDirty;
+		private volatile bool bookListDirty;
 
-        private volatile bool updateGroupList;
+		private volatile bool updateGroupList;
 
-        private volatile int newGroupListWidth;
+		private volatile int newGroupListWidth;
 
-        private volatile int totalCount;
+		private volatile int totalCount;
 
-        private long totalSize;
+		private long totalSize;
 
-        private long selectedSize;
+		private long selectedSize;
 
-        private readonly CommandMapper commands = new CommandMapper();
+		private readonly CommandMapper commands = new CommandMapper();
 
-        private readonly Image groupUp = Resources.GroupUp;
+		private readonly Image groupUp = Resources.GroupUp;
 
-        private readonly Image groupDown = Resources.GroupDown;
+		private readonly Image groupDown = Resources.GroupDown;
 
-        private readonly Image sortUp = Resources.SortUp;
+		private readonly Image sortUp = Resources.SortUp;
 
-        private readonly Image sortDown = Resources.SortDown;
+		private readonly Image sortDown = Resources.SortDown;
 
-        private ToolStripMenuItem miCopyListSetup;
+		private ToolStripMenuItem miCopyListSetup;
 
-        private ToolStripMenuItem miPasteListSetup;
+		private ToolStripMenuItem miPasteListSetup;
 
-        private ComicBookMatcher quickFilter;
+		private ComicBookMatcher quickFilter;
 
-        private ComicBookMatcher stackFilter;
+		private ComicBookMatcher stackFilter;
 
-        private IViewableItem stackItem;
+		private IViewableItem stackItem;
 
-        private StacksConfig stacksConfig;
+		private StacksConfig stacksConfig;
 
-        private ItemViewConfig preStackConfig;
+		private ItemViewConfig preStackConfig;
 
-        private Point preStackScrollPosition;
+		private Point preStackScrollPosition;
 
-        private Guid preStackFocusedId;
+		private Guid preStackFocusedId;
 
-        private string currentStackName;
+		private string currentStackName;
 
-        private IComicBookListProvider bookList;
+		private IComicBookListProvider bookList;
 
-        private string quickSearch;
+		private string quickSearch;
 
-        private ComicBookAllPropertiesMatcher.MatcherOption quickSearchType;
+		private ComicBookAllPropertiesMatcher.MatcherOption quickSearchType;
 
-        private ComicBookAllPropertiesMatcher.ShowOptionType showOptionType;
+		private ComicBookAllPropertiesMatcher.ShowOptionType showOptionType;
 
-        private ComicBookAllPropertiesMatcher.ShowComicType showComicType;
+		private ComicBookAllPropertiesMatcher.ShowComicType showComicType;
 
-        private bool showOnlyDuplicates;
+		private bool showOnlyDuplicates;
 
-        private bool showGroupHeaders;
+		private bool showGroupHeaders;
 
-        private ComicsEditModes comicEditMode = ComicsEditModes.Default;
+		private ComicsEditModes comicEditMode = ComicsEditModes.Default;
 
-        private ThumbnailConfig thumbnailConfig;
+		private ThumbnailConfig thumbnailConfig;
 
-        private Image listBackgroundImage;
+		private Image listBackgroundImage;
 
-        private IGrouper<IViewableItem> oldStacker;
+		private IGrouper<IViewableItem> oldStacker;
 
-        private string[] quickSearchCueTexts;
+		private string[] quickSearchCueTexts;
 
-        private Point contextMenuMouseLocation;
+		private Point contextMenuMouseLocation;
 
-        private long contextMenuCloseTime;
+		private long contextMenuCloseTime;
 
-        private int oldQuickWidth;
+		private int oldQuickWidth;
 
-        private int savedOptimizeToolstripRight;
+		private int savedOptimizeToolstripRight;
 
-        private int savedOptimizeToolstripWitdh;
+		private int savedOptimizeToolstripWitdh;
 
-        private string backgroundImageSource;
+		private string backgroundImageSource;
 
-        private IBitmapCursor dragCursor;
+		private IBitmapCursor dragCursor;
 
-        private bool ownDrop;
+		private bool ownDrop;
 
-        private DragDropContainer dragBookContainer;
+		private DragDropContainer dragBookContainer;
 
-        private readonly ManualResetEvent abortBuildMenu = new ManualResetEvent(initialState: false);
+		private readonly ManualResetEvent abortBuildMenu = new ManualResetEvent(initialState: false);
 
-        private Thread buildMenuThread;
+		private Thread buildMenuThread;
 
-        private bool blockQuickSearchUpdate;
+		private bool blockQuickSearchUpdate;
 
-        private CoverViewItem toolTipItem;
+		private CoverViewItem toolTipItem;
 
-        private bool searchBrowserVisible;
+		private bool searchBrowserVisible;
 
-        private ComicLibrary library;
+		private ComicLibrary library;
 
 
 		[Browsable(false)]
