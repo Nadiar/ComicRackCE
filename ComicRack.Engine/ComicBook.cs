@@ -30,192 +30,192 @@ using SharpCompress.Common;
 
 namespace cYo.Projects.ComicRack.Engine
 {
-    [Serializable]
-    [ComVisible(true)]
-    public class ComicBook : ComicInfo, IImageKeyProvider, ICloneable
-    {
-        private class ComicTextNumberFloat : TextNumberFloat
-        {
-            public ComicTextNumberFloat(string text)
-                : base(text)
-            {
-            }
+	[Serializable]
+	[ComVisible(true)]
+	public class ComicBook : ComicInfo, IImageKeyProvider, ICloneable
+	{
+		private class ComicTextNumberFloat : TextNumberFloat
+		{
+			public ComicTextNumberFloat(string text)
+				: base(text)
+			{
+			}
 
-            protected override void OnParseText(string s)
-            {
-                if (s == "1/2")
-                {
-                    base.Number = 0.5f;
-                }
-                else
-                {
-                    base.OnParseText(s);
-                }
-            }
-        }
+			protected override void OnParseText(string s)
+			{
+				if (s == "1/2")
+				{
+					base.Number = 0.5f;
+				}
+				else
+				{
+					base.OnParseText(s);
+				}
+			}
+		}
 
-        public class ParseFilePathEventArgs : EventArgs
-        {
-            private readonly string path;
+		public class ParseFilePathEventArgs : EventArgs
+		{
+			private readonly string path;
 
-            private readonly ComicNameInfo nameInfo;
+			private readonly ComicNameInfo nameInfo;
 
-            public string Path => path;
+			public string Path => path;
 
-            public ComicNameInfo NameInfo => nameInfo;
+			public ComicNameInfo NameInfo => nameInfo;
 
-            public ParseFilePathEventArgs(string path)
-            {
-                this.path = path;
-                nameInfo = ComicNameInfo.FromFilePath(path);
-            }
-        }
+			public ParseFilePathEventArgs(string path)
+			{
+				this.path = path;
+				nameInfo = ComicNameInfo.FromFilePath(path);
+			}
+		}
 
-        public const int ReadPercentageAsRead = 95;
+		public const int ReadPercentageAsRead = 95;
 
-        public const string ClipboardFormat = "ComicBook";
+		public const string ClipboardFormat = "ComicBook";
 
-        public const string DefaultCaptionFormat = "[{format} ][{series}][ {volume}][ #{number}][ - {title}][ ({year}[/{month}[/{day}]])]";
+		public const string DefaultCaptionFormat = "[{format} ][{series}][ {volume}][ #{number}][ - {title}][ ({year}[/{month}[/{day}]])]";
 
-        public const string DefaultAlternateCaptionFormat = "[{alternateseries}][ #{alternatenumber}]";
+		public const string DefaultAlternateCaptionFormat = "[{alternateseries}][ #{alternatenumber}]";
 
-        public const string DefaultComicExportFileNameFormat = "[{format} ][{series}][ {volume}][ #{number}][ ({year}[/{month}])]";
+		public const string DefaultComicExportFileNameFormat = "[{format} ][{series}][ {volume}][ #{number}][ ({year}[/{month}])]";
 
-        public static readonly Equality<ComicBook> GuidEquality;
+		public static readonly Equality<ComicBook> GuidEquality;
 
-        public static bool EnableGroupNameCompression;
+		public static bool EnableGroupNameCompression;
 
-        private static TR tr;
+		private static TR tr;
 
-        private static readonly Lazy<string> unkownText;
+		private static readonly Lazy<string> unkownText;
 
-        private static readonly Lazy<string> pagesText;
+		private static readonly Lazy<string> pagesText;
 
-        private static readonly Lazy<string> lastTimeOpenedAtText;
+		private static readonly Lazy<string> lastTimeOpenedAtText;
 
-        private static readonly Lazy<string> readingAtPageText;
+		private static readonly Lazy<string> readingAtPageText;
 
-        private static readonly Lazy<string> lastPageReadIsText;
+		private static readonly Lazy<string> lastPageReadIsText;
 
-        private static readonly Lazy<string> noneText;
+		private static readonly Lazy<string> noneText;
 
-        private static readonly Lazy<string> notFoundText;
+		private static readonly Lazy<string> notFoundText;
 
-        private static readonly Lazy<string> neverText;
+		private static readonly Lazy<string> neverText;
 
-        private static readonly Lazy<string> volumeFormat;
+		private static readonly Lazy<string> volumeFormat;
 
-        private static readonly Lazy<string> ofText;
+		private static readonly Lazy<string> ofText;
 
-        [NonSerialized]
-        private volatile ComicBookContainer container;
+		[NonSerialized]
+		private volatile ComicBookContainer container;
 
-        private Guid id = Guid.NewGuid();
+		private Guid id = Guid.NewGuid();
 
-        private DateTime addedTime = DateTime.MinValue;
+		private DateTime addedTime = DateTime.MinValue;
 
-        private DateTime releasedTime = DateTime.MinValue;
+		private DateTime releasedTime = DateTime.MinValue;
 
-        private DateTime openedTime = DateTime.MinValue;
+		private DateTime openedTime = DateTime.MinValue;
 
-        private volatile int openCount;
+		private volatile int openCount;
 
-        private volatile int currentPage;
+		private volatile int currentPage;
 
-        private volatile int lastPage;
+		private volatile int lastPage;
 
-        private float rating;
+		private float rating;
 
-        private BitmapAdjustment colorAdjustment = BitmapAdjustment.Empty;
+		private BitmapAdjustment colorAdjustment = BitmapAdjustment.Empty;
 
-        private bool enableProposed = true;
+		private bool enableProposed = true;
 
-        private YesNo seriesComplete = YesNo.Unknown;
+		private YesNo seriesComplete = YesNo.Unknown;
 
-        private bool enableDynamicUpdate = true;
+		private bool enableDynamicUpdate = true;
 
-        private bool check = NewBooksChecked;
+		private bool check = NewBooksChecked;
 
-        [NonSerialized]
-        private volatile bool fileInfoRetrieved;
+		[NonSerialized]
+		private volatile bool fileInfoRetrieved;
 
-        private volatile bool comicInfoIsDirty;
+		private volatile bool comicInfoIsDirty;
 
-        private volatile string filePath = string.Empty;
+		private volatile string filePath = string.Empty;
 
-        private long fileSize = -1L;
+		private long fileSize = -1L;
 
-        private volatile bool fileIsMissing;
+		private volatile bool fileIsMissing;
 
-        private DateTime fileModifiedTime = DateTime.MinValue;
+		private DateTime fileModifiedTime = DateTime.MinValue;
 
-        private DateTime fileCreationTime = DateTime.MinValue;
+		private DateTime fileCreationTime = DateTime.MinValue;
 
-        private string customThumbnailKey;
+		private string customThumbnailKey;
 
-        private float bookPrice = -1f;
+		private float bookPrice = -1f;
 
-        private string bookAge = string.Empty;
+		private string bookAge = string.Empty;
 
-        private string bookCondition = string.Empty;
+		private string bookCondition = string.Empty;
 
-        private string bookStore = string.Empty;
+		private string bookStore = string.Empty;
 
-        private string bookOwner = string.Empty;
+		private string bookOwner = string.Empty;
 
-        private string bookCollectionStatus = string.Empty;
+		private string bookCollectionStatus = string.Empty;
 
-        private string bookNotes = string.Empty;
+		private string bookNotes = string.Empty;
 
-        private string bookLocation = string.Empty;
+		private string bookLocation = string.Empty;
 
-        private string isbn = string.Empty;
+		private string isbn = string.Empty;
 
-        private volatile string fileName;
+		private volatile string fileName;
 
-        private volatile string fileNameWithExtension;
+		private volatile string fileNameWithExtension;
 
-        private volatile string fileFormat;
+		private volatile string fileFormat;
 
 		private volatile string actualFileFormat;
 
 		private volatile string fileDirectory;
 
-        private static readonly Calendar weekCalendar;
+		private static readonly Calendar weekCalendar;
 
-        private string fileLocation;
+		private string fileLocation;
 
-        private int newPages;
+		private int newPages;
 
-        private ComicNameInfo proposed;
+		private ComicNameInfo proposed;
 
-        [NonSerialized]
-        private TextNumberFloat compareNumber;
+		[NonSerialized]
+		private TextNumberFloat compareNumber;
 
-        [NonSerialized]
-        private TextNumberFloat compareAlternateNumber;
+		[NonSerialized]
+		private TextNumberFloat compareAlternateNumber;
 
-        private static readonly Dictionary<ComicBook, ExtraSyncInformation> syncInfo;
+		private static readonly Dictionary<ComicBook, ExtraSyncInformation> syncInfo;
 
-        private string customValuesStore = string.Empty;
+		private string customValuesStore = string.Empty;
 
-        private static HashSet<string> searchableProperties;
+		private static HashSet<string> searchableProperties;
 
-        private static readonly Regex rxField;
+		private static readonly Regex rxField;
 
-        private static Dictionary<string, CultureInfo> languages;
+		private static Dictionary<string, CultureInfo> languages;
 
-        public static readonly ComicBook Default;
+		public static readonly ComicBook Default;
 
-        private static readonly Dictionary<string, string> hasAsText;
+		private static readonly Dictionary<string, string> hasAsText;
 
-        private static readonly ImagePackage publisherIcons;
+		private static readonly ImagePackage publisherIcons;
 
-        private static readonly ImagePackage ageRatingIcons;
+		private static readonly ImagePackage ageRatingIcons;
 
-        private static readonly ImagePackage formatIcons;
+		private static readonly ImagePackage formatIcons;
 
-        private static readonly ImagePackage specialIcons;
+		private static readonly ImagePackage specialIcons;
 
 		public static TR TR
 		{
