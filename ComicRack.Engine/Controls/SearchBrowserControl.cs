@@ -338,12 +338,12 @@ namespace cYo.Projects.ComicRack.Engine.Controls
 		{
 			switch (e.Action)
 			{
-			case SmartListAction.Insert:
-				e.Item.BookChanged += BookPropertyChanged;
-				break;
-			case SmartListAction.Remove:
-				e.Item.BookChanged -= BookPropertyChanged;
-				break;
+				case SmartListAction.Insert:
+					e.Item.BookChanged += BookPropertyChanged;
+					break;
+				case SmartListAction.Remove:
+					e.Item.BookChanged -= BookPropertyChanged;
+					break;
 			}
 			listIsDirty = true;
 		}
@@ -455,14 +455,14 @@ namespace cYo.Projects.ComicRack.Engine.Controls
 		{
 			switch (column)
 			{
-			case 0:
-				return cbType1.SelectedItem as SelectionEntry;
-			case 1:
-				return cbType2.SelectedItem as SelectionEntry;
-			case 2:
-				return cbType3.SelectedItem as SelectionEntry;
-			default:
-				return null;
+				case 0:
+					return cbType1.SelectedItem as SelectionEntry;
+				case 1:
+					return cbType2.SelectedItem as SelectionEntry;
+				case 2:
+					return cbType3.SelectedItem as SelectionEntry;
+				default:
+					return null;
 			}
 		}
 
@@ -470,15 +470,15 @@ namespace cYo.Projects.ComicRack.Engine.Controls
 		{
 			switch (column)
 			{
-			case 0:
-				SelectListEntry(listView1, value);
-				break;
-			case 1:
-				SelectListEntry(listView2, value);
-				break;
-			case 2:
-				SelectListEntry(listView3, value);
-				break;
+				case 0:
+					SelectListEntry(listView1, value);
+					break;
+				case 1:
+					SelectListEntry(listView2, value);
+					break;
+				case 2:
+					SelectListEntry(listView3, value);
+					break;
 			}
 		}
 
@@ -629,7 +629,7 @@ namespace cYo.Projects.ComicRack.Engine.Controls
 							continue;
 						}
 						hashSet.AddRange(from vs in stringPropertyValue.Split(listSeparators)
-							select vs.Trim());
+										 select vs.Trim());
 					}
 					List<string> list = hashSet.ToList();
 					list.Sort(new ExtendedStringComparer(ExtendedStringComparison.IgnoreArticles | ExtendedStringComparison.IgnoreCase));
