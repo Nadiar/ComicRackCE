@@ -126,6 +126,13 @@ Community Edition Build 0.9.180:
 * UPDATE: Updated SharpCompress to v0.39.
 * UPDATE: Updated WindowsCodePack to V1.15.
 
+
+* UPDATE: Updated to .NET Framework v4.8.
+* UPDATE: Updated 7-Zip to to v24.07.
+* UPDATE: Updated SharpZipLib to v1.4.2.
+* UPDATE: Updated SharpCompress to v0.36.
+* UPDATE: Updated WindowsCodePack to V1.15.
+
  
 * BUGFIX: Fixed Crash when the clipboard contained some objects while the program is idle. 
 * BUGFIX: Fixed Crash if window size is less than 0 (Usually when using high DPI scaling).
