@@ -130,7 +130,7 @@ Community Edition Build 0.9.180:
 * UPDATE: Updated to .NET Framework v4.8.
 * UPDATE: Updated 7-Zip to to v24.07.
 * UPDATE: Updated SharpZipLib to v1.4.2.
-* UPDATE: Updated SharpCompress to v0.36.
+* UPDATE: Updated SharpCompress to v0.38.
 * UPDATE: Updated WindowsCodePack to V1.15.
 
  
