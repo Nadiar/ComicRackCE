@@ -20,7 +20,6 @@ namespace cYo.Common.IO
 		public class CacheItem
 		{
 			private long length;
-			private static Type[] extraTypes;
 
 			public string File
 			{
@@ -61,25 +60,6 @@ namespace cYo.Common.IO
 				Key = key;
 				File = file;
 				this.length = length;
-			}
-
-			public static Type[] GetExtraXmlSerializationTypes()
-			{
-				if (extraTypes == null)
-				{
-					List<Type> list = new List<Type>();
-					list.Add(typeof(K));
-					list.AddRange(GetDerivedTypes(typeof(K)));
-					extraTypes = list.ToArray();
-				}
-				return extraTypes;
-			}
-
-			private static IEnumerable<Type> GetDerivedTypes(Type baseType)
-			{
-				return AppDomain.CurrentDomain.GetAssemblies()
-					.SelectMany(assembly => assembly.GetTypes())
-					.Where(type => type.IsSubclassOf(baseType));
 			}
 		}
 
