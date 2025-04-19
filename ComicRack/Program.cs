@@ -44,6 +44,7 @@ using cYo.Projects.ComicRack.Viewer.Config;
 using cYo.Projects.ComicRack.Viewer.Dialogs;
 using cYo.Projects.ComicRack.Viewer.Properties;
 using Microsoft.Win32;
+using static IronPython.Modules._ast;
 using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
 using cYo.Common.Windows.Forms.Theme;
 using cYo.Common.Windows.Forms.Theme.Resources;
