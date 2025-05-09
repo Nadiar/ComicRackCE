@@ -137,7 +137,7 @@ namespace cYo.Projects.ComicRack.Engine.IO.Cache
 			return true;
 		}
 
-		public void AddThumbToQueue(ThumbnailKey key, object callbackKey, AsyncCallback asyncCallback)
+		public void AddThumbToQueue(ThumbnailKey key, object callbackKey, AsyncCallback asyncCallback, bool noSizeLimit = false)
 		{
 			if (thumbs.DiskCache.IsAvailable(key))
 			{
@@ -145,7 +145,7 @@ namespace cYo.Projects.ComicRack.Engine.IO.Cache
 			}
 			else
 			{
-				slowThumbnailQueue.AddItem(key, callbackKey, asyncCallback);
+				(noSizeLimit ? slowThumbnailQueueUnlimited : slowThumbnailQueue).AddItem(key, callbackKey, asyncCallback);
 			}
 		}
 
