@@ -324,8 +324,8 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
 			// cmThumbnail
 			// 
 			this.cmThumbnail.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-			this.miResetThumbnail,
-			this.toolStripMenuItem1});
+            this.miResetThumbnail,
+            this.toolStripMenuItem1});
 			this.cmThumbnail.Name = "cmKeyboardLayout";
 			this.cmThumbnail.Size = new System.Drawing.Size(103, 32);
 			// 
@@ -1969,8 +1969,8 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.customValuesData.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			this.customValuesData.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-			this.CustomValueName,
-			this.CustomValueValue});
+            this.CustomValueName,
+            this.CustomValueValue});
 			this.customValuesData.Location = new System.Drawing.Point(11, 16);
 			this.customValuesData.Name = "customValuesData";
 			this.customValuesData.Size = new System.Drawing.Size(537, 410);
@@ -2018,8 +2018,8 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
 			// cmResetPages
 			// 
 			this.cmResetPages.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-			this.miOrderByName,
-			this.miOrderByNameNumeric});
+            this.miOrderByName,
+            this.miOrderByNameNumeric});
 			this.cmResetPages.Name = "cmResetPages";
 			this.cmResetPages.Size = new System.Drawing.Size(211, 48);
 			this.cmResetPages.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.cmResetPages_ItemClicked);
@@ -2057,7 +2057,7 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
 			this.labelPagesInfo.Size = new System.Drawing.Size(421, 13);
 			this.labelPagesInfo.TabIndex = 0;
 			this.labelPagesInfo.Text = "Change the page order with drag & drop or use the context menu to change page typ" +
-	"es:";
+    "es:";
 			this.labelPagesInfo.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			this.labelPagesInfo.UseMnemonic = false;
 			// 
@@ -2163,9 +2163,9 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
 			// 
 			// pageViewer
 			// 
-			this.pageViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-			| System.Windows.Forms.AnchorStyles.Left)
-			| System.Windows.Forms.AnchorStyles.Right)));
+			this.pageViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.pageViewer.AutoScrollMode = cYo.Common.Windows.Forms.AutoScrollMode.Pan;
 			this.pageViewer.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.pageViewer.ForeColor = ThemeColors.ComicBook.PageViewer;
