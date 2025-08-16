@@ -1447,6 +1447,18 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			}
 		}
 
+		private IComparer<ComicBook> GetCurrentListSorter(string sortKey)
+		{
+			var comicBrowser = Program.MainForm.FindActiveService<IComicBrowser>() as ComicBrowserControl;
+			var comparer = (comicBrowser?.ItemView.ConvertKeyToColumns(sortKey).FirstOrDefault()?.ColumnSorter as IComicBookComparer)?.Comparer;
+
+			var sortOrder = comicBrowser?.ItemView.ItemSortOrder ?? SortOrder.None;
+			if (sortOrder == SortOrder.Descending && comparer != null)
+				comparer = comparer.Reverse();
+
+			return comparer;
+		}
+
 		private bool isPasteListEnabled()
 		{
             //Check if the clipboard contains data, if so enable the paste button.
