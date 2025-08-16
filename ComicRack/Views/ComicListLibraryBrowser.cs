@@ -281,9 +281,9 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			quickSearch.SetCueText(tsQuickSearch.Text);
 			queryCacheTimer.Interval = (ComicLibrary.IsQueryCacheInstantUpdate ? 100 : 2500);
 			miPasteList.Click += new EventHandler((sender, e) => PasteList());
-        }
+		}
 
-        public ComicListLibraryBrowser(ComicLibrary library)
+		public ComicListLibraryBrowser(ComicLibrary library)
 			: this()
 		{
 			Library = library;
@@ -897,7 +897,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 				};
 				cmEditDevices.DropDownItems.Add(toolStripMenuItem);
 			}
-        }
+		}
 
 		private void cmEditDevices_Click(object sender, EventArgs e)
 		{
@@ -1357,6 +1357,45 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 						string selectedPath = dialog.SelectedPath;
 						ExportFolderListsToFile(shareableComicListItem, true, selectedPath); // TODO: find a way to choose alwaysList
 					}
+
+				}
+			}
+		}
+
+		void ExportListToFile(ComicListItem cli, bool alwaysList, string fileName)
+		{
+			try
+			{
+				new ComicReadingListContainer(cli, Program.Settings.ExportedListsContainFilenames, alwaysList, GetCurrentListSorter).Serialize(fileName);
+			}
+			catch
+			{
+				MessageBox.Show(StringUtility.Format(TR.Messages["ErrorWritingReadingList", "There was an error exporting the Reading List '{0}'"], Path.GetFileName(fileName)));
+			}
+		}
+
+		void ExportFolderListsToFile(ComicListItem cli, bool alwaysList, string selectedPath)
+		{
+			// Exit if the ComicListItem is null, selectedPath is empty, or the item is not a folder.
+			if (cli == null || string.IsNullOrEmpty(selectedPath) || cli is not ComicListItemFolder comicListItemFolder)
+				return;
+
+			string basePath = selectedPath;
+			foreach (ComicListItem list in comicListItemFolder.Items) // Iterate through the items in the folder
+			{
+				if (list is ComicListItemFolder subFolder) // Item is a subfolder
+				{
+					// Create a subdirectory for the subfolder
+					string subFolderPath = Path.Combine(basePath, FileUtility.MakeValidFilename(subFolder.Name));
+					if (!string.IsNullOrEmpty(subFolderPath) && !FileUtility.SafeDirectoryExists(subFolderPath))
+						Directory.CreateDirectory(subFolderPath);
+
+					ExportFolderListsToFile(subFolder, alwaysList, subFolderPath); // Recursively export subfolders
+				}
+				else
+				{
+					string fileName = Path.Combine(basePath, FileUtility.MakeValidFilename(list.Name) + ".cbl");
+					ExportListToFile(list, alwaysList, fileName);
 				}
 			}
 			else
