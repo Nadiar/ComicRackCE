@@ -281,7 +281,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			quickSearch.SetCueText(tsQuickSearch.Text);
 			queryCacheTimer.Interval = (ComicLibrary.IsQueryCacheInstantUpdate ? 100 : 2500);
 			miPasteList.Click += new EventHandler((sender, e) => PasteList());
-		}
+        }
 
 		public ComicListLibraryBrowser(ComicLibrary library)
 			: this()
