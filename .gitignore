@@ -344,3 +344,6 @@ healthchecksdb
 */Tags.txt
 /ComicRack/Properties/launchSettings.json
 /ComicRackCESetup*.exe
+
+# Claude Code context directory (local session memory, not part of source)
+.claude/
