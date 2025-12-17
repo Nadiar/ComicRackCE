@@ -12,15 +12,14 @@
 #
 ##########################################################################
 
-import clr
+import clr_bridge
+from clr_bridge import ComicRack
 import sys
 from cYo.Projects.ComicRack.Engine.Display import *
 from System.Collections.Generic import *
-
-clr.AddReferenceByPartialName("System.Windows.Forms")
-clr.AddReferenceByPartialName("System.Drawing")
 from System.Windows.Forms import *
 from System.Drawing import *
+
 
 #
 # Sample Parser for Book paths
@@ -175,10 +174,10 @@ class UIControl(Control):
 		self.Controls.Add(self.lb)   
 		
 	def ShowInfo(self, books):
-		print 'Calling...' + str(len(books))
+		print('Calling...' + str(len(books)))
 		self.lb.Items.Clear()
 		for b in books:
-			print 'Adding ' + b.Caption
+			print('Adding ' + b.Caption)
 			self.lb.Items.Add(b.Caption)
 
 #@Name [Code Sample] Dummy Book Info UI

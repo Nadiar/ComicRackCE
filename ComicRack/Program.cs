@@ -49,6 +49,8 @@ using cYo.Common.Windows.Forms.Theme;
 using cYo.Common.Windows.Forms.Theme.Resources;
 using cYo.Projects.ComicRack.Plugins.Theme;
 using cYo.Projects.ComicRack.Engine.Backup;
+using ComicRack.Plugins;
+
 
 namespace cYo.Projects.ComicRack.Viewer
 {
@@ -186,7 +188,7 @@ namespace cYo.Projects.ComicRack.Viewer
 			set;
 		}
 
-		public static ScriptOutputForm ScriptConsole
+		public static ModernScriptConsole ScriptConsole
 		{
 			get;
 			set;
@@ -917,15 +919,16 @@ namespace cYo.Projects.ComicRack.Viewer
 			}
 			if (ExtendedSettings.ShowScriptConsole)
 			{
-				ScriptConsole = new ScriptOutputForm();
-				TextBoxStream logOutput = (TextBoxStream)(PythonCommand.Output = new TextBoxStream(ScriptConsole.Log));
+				ScriptConsole = new ModernScriptConsole();
 				PythonCommand.EnableLog = true;
-				WebComic.SetLogOutput(logOutput);
+				LogManager.Info("System", "Modern Script Console initialized.");
 				ScriptConsole.Show();
 			}
 			NetworkManager = new NetworkManager(DatabaseManager, CacheManager, Settings, ExtendedSettings.PrivateServerPort, ExtendedSettings.InternetServerPort, ExtendedSettings.DisableBroadcast);
 			MainForm = new MainForm();
+			PythonRuntimeManager.Instance.SetApi(MainForm);
 			MainForm.FormClosed += MainFormFormClosed;
+
 			MainForm.FormClosing += (object s, FormClosingEventArgs e) =>
             {
                 bool flag2 = e.CloseReason == CloseReason.UserClosing;
@@ -1044,6 +1047,13 @@ namespace cYo.Projects.ComicRack.Viewer
 		{
 			try
 			{
+				// Detach output first to avoid deadlocks during shutdown
+				PythonCommand.Output = null;
+				if (ScriptConsole != null && !ScriptConsole.IsDisposed)
+				{
+					ScriptConsole.InvokeIfRequired(ScriptConsole.Close);
+				}
+
 				NetworkManager.Dispose();
 				SystemEvents.PowerModeChanged -= SystemEventsPowerModeChanged;
 				QueueManager.Dispose();
@@ -1051,7 +1061,12 @@ namespace cYo.Projects.ComicRack.Viewer
 				Settings.Save(defaultSettingsFile);
 				ImagePool.Dispose();
 				DatabaseManager.Dispose();
+				PythonRuntimeManager.Instance.Shutdown();
+
 				if (Settings.BackupManager.OnExit) BackupManager.RunBackup(false);
+				
+				// Final failsafe to ensure process termination
+				Environment.Exit(0);
 			}
 			catch (Exception ex)
 			{
