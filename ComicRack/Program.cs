@@ -1122,7 +1122,8 @@ namespace cYo.Projects.ComicRack.Viewer
 		private static int Main(string[] args)
 		{
 			SetProcessDPIAware();
-			ServicePointManager.Expect100Continue = false;
+			SetProcessDPIAware();
+			// ServicePointManager.Expect100Continue = false; // SYSLIB0014: ServicePointManager is obsolete and settings don't affect HttpClient
 			if (ExtendedSettings.WaitPid != 0)
 			{
 				try

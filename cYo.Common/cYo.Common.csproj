@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <OutputType>Library</OutputType>
     <FileAlignment>4096</FileAlignment>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -16,9 +16,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Web.Services" />
+
   </ItemGroup>
   <ItemGroup>
     <AppDesigner Include="Properties\" />
@@ -41,6 +39,10 @@
     </PackageReference>
     <PackageReference Include="System.Management" Version="9.0.2" />
     <PackageReference Include="System.Text.Json" Version="9.0.2" />
+    <PackageReference Include="CoreWCF.Primitives" Version="1.6.0" />
+    <PackageReference Include="CoreWCF.NetTcp" Version="1.6.0" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="8.1.0" />
+    <PackageReference Include="System.ServiceModel.NetTcp" Version="8.1.0" />
   </ItemGroup>
   <PropertyGroup />
 </Project>

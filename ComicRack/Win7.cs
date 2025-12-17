@@ -65,7 +65,10 @@ namespace cYo.Projects.ComicRack.Viewer
 				}
 				else
 				{
-					windowsTaskbar.SetOverlayIcon(bitmap.BitmapToIcon(), text);
+					using (var icon = bitmap.BitmapToIcon())
+					{
+						windowsTaskbar.SetOverlayIcon(icon, text);
+					}
 				}
 			}
 		}
