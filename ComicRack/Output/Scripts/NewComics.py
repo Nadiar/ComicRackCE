@@ -6,15 +6,13 @@
 # (C)'2010 cYo Soft
 ##########################################################################
 
-import clr
-clr.AddReferenceByPartialName("System.Windows.Forms")
-clr.AddReferenceByPartialName("System.Drawing")
-
+import clr_bridge
+from clr_bridge import ComicRack
 import System.Drawing
 import System.Windows.Forms
-
 from System.Drawing import *
 from System.Windows.Forms import *
+
 
 class NewComicsForm(Form):
 	def __init__(self):

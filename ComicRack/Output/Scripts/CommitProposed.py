@@ -6,6 +6,10 @@
 # (C)'2007 cYo Soft
 ##########################################################################
 
+import clr_bridge
+from clr_bridge import ComicRack
+
+
 #@Name	Commit Proposed Values...
 #@Hook	Books
 #@Description A script to makes the proposed values for the Books permanent

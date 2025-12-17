@@ -122,7 +122,7 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="Output\ComicRack.ini">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
             <TargetPath>ComicRack.ini</TargetPath>
         </Content>
         <Content Include="Output\Changes.txt">
@@ -171,12 +171,15 @@
         <RemoveDir Directories="$(OutDir)\Languages" />
         <RemoveDir Directories="$(OutDir)\Help" />
         <RemoveDir Directories="$(OutDir)\Scripts" />
+        <RemoveDir Directories="$(OutDir)\Python" />
     </Target>
-    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Target Name="PreBuild" BeforeTargets="BeforeBuild">
+        <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(SolutionDir)PreparePython.ps1&quot; -Version &quot;3.12.10&quot; -TargetDir &quot;$(ProjectDir)Output\Python&quot;" />
         <ItemGroup>
-            <OutputDirectory Include="Output\**\*.*" />
+            <OutputDirectory Include="Output\**\*.*" Exclude="Output\ComicRack.ini" />
         </ItemGroup>
-        <Copy SourceFiles="@(OutputDirectory)" DestinationFolder="$(OutDir)\%(RecursiveDir)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(OutputDirectory)" DestinationFolder="$(OutDir)%(RecursiveDir)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="Output\ComicRack.ini" DestinationFolder="$(OutDir)" Condition="!Exists('$(OutDir)ComicRack.ini')" />
         <Exec Command="git rev-parse HEAD &gt; &quot;CurrentCommit.txt&quot;&#xD;&#xA;git status --porcelain &gt; &quot;isDirty.txt&quot;&#xD;&#xA;exit 0" />
     </Target>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
