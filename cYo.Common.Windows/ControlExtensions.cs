@@ -21,7 +21,7 @@ namespace cYo.Common.Windows
 			{
 				return;
 			}
-			control.Invoke((MethodInvoker)delegate
+			control.Invoke((System.Windows.Forms.MethodInvoker)delegate
 			{
 				if (IsValid(control))
 				{
@@ -36,7 +36,7 @@ namespace cYo.Common.Windows
 			{
 				return;
 			}
-			control.BeginInvoke((MethodInvoker)delegate
+			control.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
 			{
 				try
 				{

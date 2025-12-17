@@ -22,7 +22,7 @@ namespace cYo.Projects.ComicRack.Engine.IO.Provider
 	{
 		static Jpeg2000Image()
 		{
-			BitmapImageCreator.Register();
+			// BitmapImageCreator.Register();
 		}
 
 		public static byte[] ConvertToJpeg2000(Bitmap bmp, int quality = 40, bool isJp2 = true)

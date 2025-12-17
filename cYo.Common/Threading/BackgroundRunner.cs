@@ -74,8 +74,11 @@ namespace cYo.Common.Threading
 				Thread thread = this.thread;
 				if (thread != null && !thread.Join(5000))
 				{
-					thread.Abort();
-					thread.Join();
+                    // CoreWCF / .NET 9 Migration: Thread.Abort is obsolete/unsupported.
+                    // We cannot force kill the thread. We gave it 5 seconds to exit via events.
+                    // If it hasn't exited, we have to let it leak/run until process exit.
+					// thread.Abort(); 
+					// thread.Join();
 				}
 				runEvent.Dispose();
 				exitEvent.Dispose();

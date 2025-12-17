@@ -1,7 +1,7 @@
 <Project>
  <PropertyGroup>
     <SolutionDir>$(MSBuildThisFileDirectory)</SolutionDir>
-	<LangVersion>13.0</LangVersion>
+	<LangVersion>latest</LangVersion>
  </PropertyGroup>
      <ItemGroup>
         <PackageReference Include="PolySharp">
@@ -10,4 +10,8 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
     </ItemGroup>
+  <PropertyGroup>
+      <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+      <NoWarn>$(NoWarn);WFO1000;SYSLIB0011;CA1416;SYSLIB0003;SYSLIB0004;SYSLIB0050;CS0618</NoWarn>
+  </PropertyGroup>
 </Project>

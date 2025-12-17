@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using cYo.Common.ComponentModel;
 using cYo.Common.Runtime;
+using System.Runtime.InteropServices;
 
 namespace cYo.Common.Drawing
 {
@@ -637,13 +638,25 @@ namespace cYo.Common.Drawing
 		/// https://referencesource.microsoft.com/#System.Drawing/commonui/System/Drawing/Icon.cs,f2697049dea34e7c,references
 		/// To get arround this we get the constructor internal Icon(IntPtr handle, bool takeOwnership) from Icon through reflection and initialize that way
 		/// </summary>
+		
+		[DllImport("user32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool DestroyIcon(IntPtr hIcon);
+
 		public static Icon BitmapToIcon(this Bitmap bitmap)
 		{
-			Type[] cargt = new[] { typeof(IntPtr), typeof(bool) };
-			ConstructorInfo ci = typeof(Icon).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, cargt, null);
-			object[] cargs = new[] { (object)bitmap.GetHicon(), true };
-			Icon icon = (Icon)ci.Invoke(cargs);
-			return icon;
+			IntPtr hIcon = bitmap.GetHicon();
+			try
+			{
+				using (Icon temp = Icon.FromHandle(hIcon))
+				{
+					return (Icon)temp.Clone();
+				}
+			}
+			finally
+			{
+				DestroyIcon(hIcon);
+			}
 		}
 	}
 }
