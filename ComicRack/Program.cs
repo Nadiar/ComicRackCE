@@ -917,13 +917,6 @@ namespace cYo.Projects.ComicRack.Viewer
 			{
 				PythonCommand.Optimized = false;
 			}
-			if (ExtendedSettings.ShowScriptConsole)
-			{
-				ScriptConsole = new ModernScriptConsole();
-				PythonCommand.EnableLog = true;
-				LogManager.Info("System", "Modern Script Console initialized.");
-				ScriptConsole.Show();
-			}
 			NetworkManager = new NetworkManager(DatabaseManager, CacheManager, Settings, ExtendedSettings.PrivateServerPort, ExtendedSettings.InternetServerPort, ExtendedSettings.DisableBroadcast);
 			MainForm = new MainForm();
 			PythonRuntimeManager.Instance.SetApi(MainForm);
@@ -963,6 +956,26 @@ namespace cYo.Projects.ComicRack.Viewer
 			{
 				int num = InstalledLanguages.Length;
 			});
+			// Initialize ScriptConsole asynchronously after MainForm is shown
+			// This prevents blocking the UI thread during startup
+			if (ExtendedSettings.ShowScriptConsole)
+			{
+				ThreadUtility.RunInBackground("Initialize Script Console", () =>
+				{
+					try
+					{
+						ScriptConsole = new ModernScriptConsole();
+						PythonCommand.EnableLog = true;
+						LogManager.Info("System", "Modern Script Console initialized.");
+						// Show on UI thread
+						MainForm?.Invoke((Action)(() => ScriptConsole?.Show()));
+					}
+					catch (Exception ex)
+					{
+						LogManager.Error("System", $"Failed to initialize Script Console: {ex.Message}");
+					}
+				});
+			}
 			if (!string.IsNullOrEmpty(DatabaseManager.OpenMessage))
 			{
 				MessageBox.Show(MainForm, DatabaseManager.OpenMessage, TR.Messages["Attention", "Attention"], MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
