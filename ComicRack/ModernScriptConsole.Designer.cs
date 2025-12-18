@@ -20,6 +20,7 @@ namespace cYo.Projects.ComicRack.Viewer
             this.btReload = new System.Windows.Forms.Button();
             this.btClear = new System.Windows.Forms.Button();
             this.chkAutoScroll = new System.Windows.Forms.CheckBox();
+            this.chkEnableTrace = new System.Windows.Forms.CheckBox();
             this.cmbSourceFilter = new System.Windows.Forms.ComboBox();
             this.cmbLevelFilter = new System.Windows.Forms.ComboBox();
             this.txtSearch = new System.Windows.Forms.TextBox();
@@ -45,6 +46,7 @@ namespace cYo.Projects.ComicRack.Viewer
             this.panelTop.Controls.Add(this.txtSearch);
             this.panelTop.Controls.Add(this.cmbLevelFilter);
             this.panelTop.Controls.Add(this.cmbSourceFilter);
+            this.panelTop.Controls.Add(this.chkEnableTrace);
             this.panelTop.Controls.Add(this.chkAutoScroll);
             this.panelTop.Controls.Add(this.btClear);
             this.panelTop.Controls.Add(this.btReload);
@@ -74,7 +76,7 @@ namespace cYo.Projects.ComicRack.Viewer
             this.btClear.Text = "Clear";
             this.btClear.UseVisualStyleBackColor = true;
             this.btClear.Click += new System.EventHandler(this.btClear_Click);
-            // 
+            //
             // chkAutoScroll
             //
             this.chkAutoScroll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
@@ -87,7 +89,18 @@ namespace cYo.Projects.ComicRack.Viewer
             this.chkAutoScroll.TabIndex = 2;
             this.chkAutoScroll.Text = "Auto-Scroll";
             this.chkAutoScroll.UseVisualStyleBackColor = true;
-            // 
+            //
+            // chkEnableTrace
+            //
+            this.chkEnableTrace.AutoSize = true;
+            this.chkEnableTrace.Checked = false;
+            this.chkEnableTrace.Location = new System.Drawing.Point(250, 13);
+            this.chkEnableTrace.Name = "chkEnableTrace";
+            this.chkEnableTrace.Size = new System.Drawing.Size(130, 17);
+            this.chkEnableTrace.TabIndex = 6;
+            this.chkEnableTrace.Text = "Enable Python Trace";
+            this.chkEnableTrace.UseVisualStyleBackColor = true;
+            //
             // cmbSourceFilter
             //
             this.cmbSourceFilter.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -147,6 +160,7 @@ namespace cYo.Projects.ComicRack.Viewer
         private System.Windows.Forms.Button btClear;
         private System.Windows.Forms.Button btReload;
         private System.Windows.Forms.CheckBox chkAutoScroll;
+        private System.Windows.Forms.CheckBox chkEnableTrace;
         private System.Windows.Forms.ComboBox cmbLevelFilter;
         private System.Windows.Forms.ComboBox cmbSourceFilter;
         private System.Windows.Forms.TextBox txtSearch;
