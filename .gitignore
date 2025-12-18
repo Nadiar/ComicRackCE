@@ -352,3 +352,13 @@ healthchecksdb
 !.github/
 !.gitignore
 !.gitattributes
+
+# Python runtime binaries (not source)
+ComicRack/Output/Python/*.pyd
+ComicRack/Output/Python/*.dll
+ComicRack/Output/Python/*.exe
+ComicRack/Output/Python/*.zip
+ComicRack/Output/Python/*.cat
+
+# Backup files
+**/*.bak
