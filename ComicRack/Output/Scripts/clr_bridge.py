@@ -15,7 +15,6 @@ from cYo.Projects.ComicRack.Engine import *
 from System.Windows.Forms import *
 from System.Drawing import *
 import faulthandler
-import os
 
 # Enable fault handler to dump stack traces on hard crashes (segfaults)
 try:
