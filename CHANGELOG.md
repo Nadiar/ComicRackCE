@@ -2,22 +2,22 @@
 
 ## Unreleased (Modernization)
 
-Hey! If you're coming from the original ComicRack (circa 2014), things look a little different under the hood. Here's a relaxed breakdown of what we've been tearing apart and putting back together.
+If you are coming from the original ComicRack (circa 2014), you will notice significant architectural changes. This release represents a comprehensive modernization of the codebase.
 
-### The Big Stuff
-- **Goodbye .NET 4.5, Hello .NET 9**: We dragged the code kicking and screaming from 2012 into the modern era. The app is faster, lighter, and actually builds on modern machines without headers from Windows 7.
-- **IronPython is Dead**: The old IronPython engine was holding us back. We ripped it out and wired in **Python.NET**. This means scripts now run on a *real* embedded CPython 3.12 engine. You can arguably use `pip` packages now (if you're brave).
+### Core Architecture
+- **.NET 9 Upgrade**: The entire application has been migrated from .NET Framework 4.5 to .NET 9. This ensures compatibility with modern operating systems, improves performance, and simplifies the build process.
+- **Python Engine Implementation**: The deprecated IronPython engine has been replaced with **Python.NET**. Scripts now execute using an embedded CPython 3.12 engine, offering better compatibility and performance than the legacy implementation.
 
-### for the Developers
-- **No More freezing**: The Script Console used to lock up the entire UI. we rewrote it to run asynchronously. Type away.
-- **We fixed the tracing**: Trying to debug scripts was like reading tea leaves. We added a full execution tracer that dumps exactly what line your script crashed on into a log file.
-- **The Bridge**: We wrote a new `clr_bridge.py` layer that sits between the C# app and Python. It handles all the weird type casting (like turning Python integers into .NET Decimals) so you don't have to think about it as much.
+### Developer Experience
+- **Asynchronous Console**: The Script Console has been rewritten to run asynchronously, preventing the UI from freezing during script execution.
+- **Enhanced Tracing**: A new tracing system generates detailed execution logs for Python scripts using `trace_report_*.log` files, simplifying the debugging process.
+- **Type Bridging**: A new `clr_bridge.py` layer manages type conversions between .NET and Python, handling common issues like Integer/Decimal interoperability automatically.
 
-### Fixes & Tweaks
-- **High DPI**: The UI shouldn't look fuzzy on 4K monitors anymore.
-- **Crash Fixes**: Fixed a ton of "Object reference not set" errors that plagued the legacy version.
-- **Build System**: The build script now downloads its own Python runtime. No more "Please install Python 2.7" errors.
+### General Improvements
+- **High DPI Support**: Updated UI components to render correctly on high-resolution displays.
+- **Stability Fixes**: Resolved numerous "Object reference not set" exceptions and stability issues present in the decompiled source.
+- **Self-Contained Build**: The build system now automatically handles the downloading and embedding of the Python runtime.
 
 ---
 
-*(For the classic boring changelog, check `Changes.txt` in the output folder)*
+*(For the comprehensive list of file-by-file changes, check `Changes.txt` in the output folder)*
