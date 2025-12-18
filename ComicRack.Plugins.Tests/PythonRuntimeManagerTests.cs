@@ -112,8 +112,34 @@ def heavy_function(x):
             // 4. Memory Leak / Function Call
             VerifyFunctionCalls(manager);
 
+            // 4.5 Tracing
+            VerifyTracing(manager);
+
             // 5. Shutdown
             VerifyShutdown(manager);
+        }
+
+        private void VerifyTracing(PythonRuntimeManager manager)
+        {
+            // Enable tracing
+            PythonRuntimeManager.EnablePythonTracing = true;
+            
+            using (Python.Runtime.Py.GIL())
+            {
+                dynamic sys = Python.Runtime.Py.Import("sys");
+                var traceFunc = sys.gettrace();
+                Assert.NotNull(traceFunc); // Ensure trace function is set
+            }
+
+            // Disable tracing
+            PythonRuntimeManager.EnablePythonTracing = false;
+
+            using (Python.Runtime.Py.GIL())
+            {
+                dynamic sys = Python.Runtime.Py.Import("sys");
+                var traceFunc = sys.gettrace();
+                Assert.Null(traceFunc); // Ensure trace function is cleared
+            }
         }
 
         private void VerifyPathSecurity(PythonRuntimeManager mgr)

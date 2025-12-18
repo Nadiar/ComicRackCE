@@ -16,6 +16,7 @@ using cYo.Projects.ComicRack.Plugins.Controls;
 using cYo.Projects.ComicRack.Plugins.Theme;
 using cYo.Projects.ComicRack.Viewer.Dialogs;
 using cYo.Common.Windows.Forms.Theme;
+using ComicRack.Plugins;
 
 namespace cYo.Projects.ComicRack.Viewer
 {
@@ -120,6 +121,10 @@ namespace cYo.Projects.ComicRack.Viewer
 			LogManager.Trace("System", "Starting plugin reload sequence. Resetting engine state.");
 			try
 			{
+				// Clear Python script cache so scripts are reloaded fresh
+				// This ensures trace settings and code changes are picked up
+				PythonRuntimeManager.Instance.ClearScriptCache();
+
 				Scripts.Reset();
 				LogManager.Trace("System", "Engine state reset. Re-initializing scripts from primary path...");
 				Scripts.Initialize(_lastEnv, Program.Paths.ScriptPath);
