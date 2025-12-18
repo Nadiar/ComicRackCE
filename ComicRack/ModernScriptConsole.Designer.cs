@@ -19,30 +19,40 @@ namespace cYo.Projects.ComicRack.Viewer
             this.panelTop = new System.Windows.Forms.Panel();
             this.btReload = new System.Windows.Forms.Button();
             this.btClear = new System.Windows.Forms.Button();
+            this.btExport = new System.Windows.Forms.Button();
             this.chkAutoScroll = new System.Windows.Forms.CheckBox();
             this.chkEnableTrace = new System.Windows.Forms.CheckBox();
             this.cmbSourceFilter = new System.Windows.Forms.ComboBox();
             this.cmbLevelFilter = new System.Windows.Forms.ComboBox();
             this.txtSearch = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.contextMenuStripLogs = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.contextMenuStripLogs = new System.Windows.Forms.ContextMenuStrip();
             this.miCopySelected = new System.Windows.Forms.ToolStripMenuItem();
+            this.miExportAll = new System.Windows.Forms.ToolStripMenuItem();
             this.panelTop.SuspendLayout();
             this.SuspendLayout();
             //
             // contextMenuStripLogs
             //
             this.contextMenuStripLogs.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.miCopySelected});
+                this.miCopySelected,
+                this.miExportAll});
             this.contextMenuStripLogs.Name = "contextMenuStripLogs";
-            this.contextMenuStripLogs.Size = new System.Drawing.Size(180, 26);
+            this.contextMenuStripLogs.Size = new System.Drawing.Size(180, 48);
             //
             // miCopySelected
             //
             this.miCopySelected.Name = "miCopySelected";
-            this.miCopySelected.Size = new System.Drawing.Size(180, 26);
+            this.miCopySelected.Size = new System.Drawing.Size(180, 22);
             this.miCopySelected.Text = "Copy Selected";
             this.miCopySelected.Click += new System.EventHandler(this.miCopySelected_Click);
+            //
+            // miExportAll
+            //
+            this.miExportAll.Name = "miExportAll";
+            this.miExportAll.Size = new System.Drawing.Size(180, 22);
+            this.miExportAll.Text = "Export Report...";
+            this.miExportAll.Click += new System.EventHandler(this.btExport_Click);
             //
             // lstLogs
             //
@@ -65,6 +75,7 @@ namespace cYo.Projects.ComicRack.Viewer
             this.panelTop.Controls.Add(this.cmbSourceFilter);
             this.panelTop.Controls.Add(this.chkEnableTrace);
             this.panelTop.Controls.Add(this.chkAutoScroll);
+            this.panelTop.Controls.Add(this.btExport);
             this.panelTop.Controls.Add(this.btClear);
             this.panelTop.Controls.Add(this.btReload);
             this.panelTop.Dock = System.Windows.Forms.DockStyle.Top;
@@ -82,6 +93,17 @@ namespace cYo.Projects.ComicRack.Viewer
             this.btReload.Text = "Reload Plugins";
             this.btReload.UseVisualStyleBackColor = true;
             this.btReload.Click += new System.EventHandler(this.btReload_Click);
+            // 
+            // btExport
+            //
+            this.btExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btExport.Location = new System.Drawing.Point(612, 10);
+            this.btExport.Name = "btExport";
+            this.btExport.Size = new System.Drawing.Size(95, 23);
+            this.btExport.TabIndex = 7;
+            this.btExport.Text = "Export Report";
+            this.btExport.UseVisualStyleBackColor = true;
+            this.btExport.Click += new System.EventHandler(this.btExport_Click);
             // 
             // btClear
             //
@@ -175,6 +197,7 @@ namespace cYo.Projects.ComicRack.Viewer
         private System.Windows.Forms.ListView lstLogs;
         private System.Windows.Forms.Panel panelTop;
         private System.Windows.Forms.Button btClear;
+        private System.Windows.Forms.Button btExport;
         private System.Windows.Forms.Button btReload;
         private System.Windows.Forms.CheckBox chkAutoScroll;
         private System.Windows.Forms.CheckBox chkEnableTrace;
@@ -184,5 +207,6 @@ namespace cYo.Projects.ComicRack.Viewer
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripLogs;
         private System.Windows.Forms.ToolStripMenuItem miCopySelected;
+        private System.Windows.Forms.ToolStripMenuItem miExportAll;
     }
 }
