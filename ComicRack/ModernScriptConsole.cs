@@ -3,7 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 using cYo.Projects.ComicRack.Plugins;
 using ComicRack.Plugins;
@@ -19,8 +21,16 @@ namespace cYo.Projects.ComicRack.Viewer
 
         public ModernScriptConsole()
         {
-            InitializeComponent();
-            
+            try
+            {
+                InitializeComponent();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to initialize component: {ex.Message}\n\n{ex.StackTrace}", "Error in InitializeComponent");
+                throw;
+            }
+
             // Set up ListView columns
             lstLogs.Columns.Add("Time", 80);
             lstLogs.Columns.Add("Level", 70);
@@ -45,6 +55,23 @@ namespace cYo.Projects.ComicRack.Viewer
             }
 
             lstLogs.KeyDown += LstLogs_KeyDown;
+            
+            // Register cleanup when form closes
+            this.FormClosing += ModernScriptConsole_FormClosing;
+        }
+
+        private void ModernScriptConsole_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Stop the UI timer to prevent it from running after form closes
+            if (_uiTimer != null)
+            {
+                _uiTimer.Stop();
+                _uiTimer.Dispose();
+                _uiTimer = null;
+            }
+
+            // Unsubscribe from LogManager events
+            LogManager.LogAdded -= OnLogAdded;
         }
 
         private void OnLogAdded(LogEntry entry)
@@ -207,6 +234,87 @@ namespace cYo.Projects.ComicRack.Viewer
         private void miCopySelected_Click(object sender, EventArgs e)
         {
             CopySelectedLogs();
+        }
+
+        private void btExport_Click(object sender, EventArgs e)
+        {
+            using (var sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "Log Files (*.log)|*.log|Text Files (*.txt)|*.txt|All Files (*.*)|*.*";
+                sfd.FileName = $"trace_report_{DateTime.Now:yyyyMMdd_HHmmss}.log";
+                sfd.DefaultExt = "log";
+                sfd.Title = "Export Trace Report";
+                
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    ExportTraceToFile(sfd.FileName);
+                }
+            }
+        }
+
+        private void ExportTraceToFile(string filePath)
+        {
+            try
+            {
+                using (var writer = new StreamWriter(filePath, false, Encoding.UTF8))
+                {
+                    // Write header
+                    writer.WriteLine("=".PadRight(80, '='));
+                    writer.WriteLine("Python Script Execution Trace Report");
+                    writer.WriteLine("=".PadRight(80, '='));
+                    writer.WriteLine($"Exported: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                    writer.WriteLine($"Trace Enabled: {PythonRuntimeManager.EnablePythonTracing}");
+                    writer.WriteLine();
+                    
+                    // Write filter information
+                    writer.WriteLine("Filters Applied:");
+                    writer.WriteLine($"  Level Filter: {(cmbLevelFilter.SelectedIndex >= 0 ? cmbLevelFilter.SelectedItem.ToString() : "None")}");
+                    writer.WriteLine($"  Source Filter: {(cmbSourceFilter.SelectedIndex > 0 ? cmbSourceFilter.SelectedItem.ToString() : "All")}");
+                    writer.WriteLine($"  Search Text: {(string.IsNullOrEmpty(txtSearch.Text) ? "None" : txtSearch.Text)}");
+                    writer.WriteLine();
+                    
+                    // Count entries by level
+                    var levelCounts = new Dictionary<LogLevel, int>();
+                    foreach (ListViewItem item in lstLogs.Items)
+                    {
+                        if (Enum.TryParse<LogLevel>(item.SubItems[1].Text, out var level))
+                        {
+                            if (!levelCounts.ContainsKey(level)) levelCounts[level] = 0;
+                            levelCounts[level]++;
+                        }
+                    }
+                    
+                    writer.WriteLine("Summary:");
+                    writer.WriteLine($"  Total Entries: {lstLogs.Items.Count}");
+                    foreach (var kvp in levelCounts.OrderBy(k => k.Key))
+                    {
+                        writer.WriteLine($"  {kvp.Key}: {kvp.Value}");
+                    }
+                    writer.WriteLine();
+                    writer.WriteLine("=".PadRight(80, '='));
+                    writer.WriteLine();
+                    
+                    // Write log entries
+                    foreach (ListViewItem item in lstLogs.Items)
+                    {
+                        writer.WriteLine($"[{item.Text}] [{item.SubItems[1].Text}] [{item.SubItems[2].Text}] {item.SubItems[3].Text}");
+                    }
+                }
+                
+                LogManager.Info("System", $"Trace report exported: {filePath}");
+                MessageBox.Show($"Trace report exported successfully to:\n{filePath}\n\nEntries: {lstLogs.Items.Count}", 
+                               "Export Complete", 
+                               MessageBoxButtons.OK, 
+                               MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                LogManager.Error("System", $"Failed to export trace report: {ex.Message}");
+                MessageBox.Show($"Failed to export trace report:\n{ex.Message}", 
+                               "Export Failed", 
+                               MessageBoxButtons.OK, 
+                               MessageBoxIcon.Error);
+            }
         }
 
         private Rectangle safeBounds;
