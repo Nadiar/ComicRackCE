@@ -187,7 +187,7 @@ import sys
 def _trace_func(frame, event, arg):
     code = frame.f_code
     filename = code.co_filename
-    if 'Scripts' in filename or (filename.endswith('.py') and '<' not in filename):
+    if ('Scripts' in filename) or (filename == '<string>'):
         lineno = frame.f_lineno
         name = code.co_name
         if event == 'call':
@@ -237,7 +237,7 @@ def _trace_func(frame, event, arg):
         lineno = frame.f_lineno
         
         # Only trace Python script files (not system libraries)
-        if 'Scripts' in filename or filename.endswith('.py'):
+        if ('Scripts' in filename) or (filename == '<string>'):
             print(f'[TRACE] {filename}:{lineno}')
     
     return _trace_func
@@ -795,9 +795,9 @@ def _cr_trace_func(frame, event, arg):
         code = frame.f_code
         filename = code.co_filename
         
-        # We only care about events in Scripts, .py files, or dynamic execution (<string>)
-        # Exclude frozen/internal '<' files if necessary, but allow basic '<string>'
-        if 'Scripts' in filename or filename.endswith('.py') or filename == '<string>':
+        # We only care about events in Scripts or dynamic execution (<string>)
+        # Exclude standard library files by only allowing files in 'Scripts' path or specific names
+        if ('Scripts' in filename):
             lineno = frame.f_lineno
             name = code.co_name
             
@@ -837,6 +837,9 @@ sys.settrace(_cr_trace_func)
 try:
     _cr_result = {functionName}({argsStr})
 except Exception as e:
+    # DISABLE TRACING IMMEDIATELY to prevent recursion during traceback generation
+    sys.settrace(None)
+    
     _cr_error = e
     _cr_trace_callback('PythonError', f'Error during execution: {{e}}')
     # Log full traceback
