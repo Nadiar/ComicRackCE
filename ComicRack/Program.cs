@@ -964,15 +964,38 @@ namespace cYo.Projects.ComicRack.Viewer
 				{
 					try
 					{
+						LogManager.Info("System", "Starting Script Console initialization...");
 						ScriptConsole = new ModernScriptConsole();
 						PythonCommand.EnableLog = true;
-						LogManager.Info("System", "Modern Script Console initialized.");
+						LogManager.Info("System", "Modern Script Console created.");
+
 						// Show on UI thread
-						MainForm?.Invoke((Action)(() => ScriptConsole?.Show()));
+						if (MainForm != null && !MainForm.IsDisposed)
+						{
+							MainForm.Invoke((Action)(() =>
+							{
+								try
+								{
+									if (ScriptConsole != null && !ScriptConsole.IsDisposed)
+									{
+										ScriptConsole.Show();
+										LogManager.Info("System", "Modern Script Console shown.");
+									}
+								}
+								catch (Exception ex)
+								{
+									LogManager.Error("System", $"Error showing Script Console: {ex.Message}");
+								}
+							}));
+						}
+						else
+						{
+							LogManager.Warning("System", "MainForm not available or disposed, cannot show Script Console.");
+						}
 					}
 					catch (Exception ex)
 					{
-						LogManager.Error("System", $"Failed to initialize Script Console: {ex.Message}");
+						LogManager.Error("System", $"Failed to initialize Script Console: {ex}");
 					}
 				});
 			}
