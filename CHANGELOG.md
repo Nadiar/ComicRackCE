@@ -20,4 +20,4 @@ If you are coming from the original ComicRack (circa 2014), you will notice sign
 
 ---
 
-*(For the comprehensive list of file-by-file changes, check `Changes.txt` in the output folder)*
+*(For the comprehensive list of file-by-file changes, check `Fork.txt` in the output folder)*
