@@ -111,17 +111,17 @@ namespace cYo.Projects.ComicRack.Viewer
             this.cmbLevelFilter.SelectedIndexChanged += new System.EventHandler(this.cmbFilter_Changed);
             // 
             // txtSearch
-            // 
-            this.txtSearch.Location = new System.Drawing.Point(404, 10);
+            //
+            this.txtSearch.Location = new System.Drawing.Point(65, 66);
             this.txtSearch.Name = "txtSearch";
             this.txtSearch.Size = new System.Drawing.Size(150, 20);
             this.txtSearch.TabIndex = 5;
             this.txtSearch.TextChanged += new System.EventHandler(this.cmbFilter_Changed);
             // 
             // label1
-            // 
+            //
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(357, 13);
+            this.label1.Location = new System.Drawing.Point(12, 67);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(41, 13);
             this.label1.TabIndex = 6;
