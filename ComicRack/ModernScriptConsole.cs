@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using cYo.Projects.ComicRack.Plugins;
+using ComicRack.Plugins;
 using cYo.Common.Windows.Forms;
 
 namespace cYo.Projects.ComicRack.Viewer
@@ -42,7 +43,7 @@ namespace cYo.Projects.ComicRack.Viewer
             {
                 OnLogAdded(log);
             }
-            
+
             lstLogs.KeyDown += LstLogs_KeyDown;
         }
 
@@ -125,8 +126,24 @@ namespace cYo.Projects.ComicRack.Viewer
 
         private void btReload_Click(object sender, EventArgs e)
         {
-            LogManager.Info("System", "Requesting plugin reload...");
+            if (chkEnableTrace.Checked)
+            {
+                LogManager.Info("System", "Requesting plugin reload... (Python Trace ENABLED)");
+                PythonRuntimeManager.EnablePythonTracing = true;
+            }
+            else
+            {
+                LogManager.Info("System", "Requesting plugin reload...");
+                PythonRuntimeManager.EnablePythonTracing = false;
+            }
+
             ScriptUtility.Reload();
+            
+            // Note: We might want to keep tracing enabled for subsequent calls until unchecked?
+            // For safety and lower noise, maybe we disable it after one reload cycle if that's the intent.
+            // But usually "Enable Trace" means "Keep tracing". Let's assume persistent for this session.
+            // Requirement said "Pass trace mode to reload/plugin execution". 
+            // If we just set the static property, it stays set.
         }
 
         private void cmbFilter_Changed(object sender, EventArgs e)
