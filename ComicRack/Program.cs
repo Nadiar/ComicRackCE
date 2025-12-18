@@ -956,60 +956,21 @@ namespace cYo.Projects.ComicRack.Viewer
 			{
 				int num = InstalledLanguages.Length;
 			});
-			// Initialize ScriptConsole asynchronously after MainForm is shown
-			// This prevents blocking the UI thread during startup
+			// Initialize ScriptConsole on UI thread after MainForm is shown
+			// WinForms controls MUST be created on the UI thread, not background threads
 			if (ExtendedSettings.ShowScriptConsole)
 			{
-				ThreadUtility.RunInBackground("Initialize Script Console", () =>
+				try
 				{
-					try
-					{
-						LogManager.Info("System", "Starting Script Console initialization...");
-						ScriptConsole = new ModernScriptConsole();
-						PythonCommand.EnableLog = true;
-						LogManager.Info("System", "Modern Script Console created.");
-
-						// Show on UI thread using BeginInvoke (non-blocking)
-						if (MainForm != null && !MainForm.IsDisposed)
-						{
-							try
-							{
-								MainForm.BeginInvoke((Action)(() =>
-								{
-									try
-									{
-										if (ScriptConsole != null && !ScriptConsole.IsDisposed)
-										{
-											ScriptConsole.Show();
-											ScriptConsole.Activate();
-											LogManager.Info("System", "Modern Script Console shown and activated.");
-										}
-										else
-										{
-											LogManager.Warning("System", "ScriptConsole is null or disposed when trying to show.");
-										}
-									}
-									catch (Exception ex)
-									{
-										LogManager.Error("System", $"Error showing Script Console: {ex.Message}\n{ex.StackTrace}");
-									}
-								}));
-							}
-							catch (Exception ex)
-							{
-								LogManager.Error("System", $"Error invoking show on MainForm: {ex.Message}");
-							}
-						}
-						else
-						{
-							LogManager.Warning("System", $"MainForm not available (null={MainForm == null}), cannot show Script Console.");
-						}
-					}
-					catch (Exception ex)
-					{
-						LogManager.Error("System", $"Failed to initialize Script Console: {ex}");
-					}
-				});
+					ScriptConsole = new ModernScriptConsole();
+					PythonCommand.EnableLog = true;
+					LogManager.Info("System", "Modern Script Console initialized.");
+					ScriptConsole.Show();
+				}
+				catch (Exception ex)
+				{
+					LogManager.Error("System", $"Failed to initialize Script Console: {ex.Message}");
+				}
 			}
 			if (!string.IsNullOrEmpty(DatabaseManager.OpenMessage))
 			{
