@@ -24,52 +24,52 @@ DETAILED TECHNICAL CHANGES (.NET 9 MIGRATION)
 
 [Build System & Project Structure]
 * ComicRack.sln: Upgraded solution format to Visual Studio 2022.
-* *.csproj (All Projects): Retargeted to 'net9.0-windows'. Removed packages.config.
-* directory.build.props (NEW): Added centralized build configuration.
-* PreparePython.ps1 (NEW): Scripts to download independent Python 3.12 runtime.
+* *.csproj (All Projects): Retargeted to 'net9.0-windows'. Removed packages.config. (+50/-30)
+* directory.build.props (NEW): Added centralized build configuration. (+5/-1)
+* PreparePython.ps1 (NEW): Scripts to download independent Python 3.12 runtime. (+45/-0)
 * BuildInstaller.ps1 (NEW): Unified build pipeline script.
 * CompressIconFolders.ps1 (NEW): Optimization script for resource management.
 
 [Core Engine (ComicRack.Engine)]
 * IO/Network/*: 
-    - Migrated WCF services to CoreWCF (ServerRegistration, ComicLibraryServer, ComicLibraryClient).
+    - Migrated WCF services to CoreWCF (ServerRegistration, ComicLibraryServer, ComicLibraryClient). (+188/-539)
 * IO/Provider/*:
-    - Updated Jpeg2000Image, Pdfium, and WebComicProvider for .NET 9 compatibility.
-    - ComicScanner.cs: Refactored scanning logic.
-* Sync/DeviceInfo.cs: Updated device synchronization logic.
-* PackedLocalize.cs: Updated localization handling.
+    - Updated Jpeg2000Image, Pdfium, and WebComicProvider for .NET 9 compatibility. (+7/-5)
+    - ComicScanner.cs: Refactored scanning logic. (+7/-3)
+* Sync/DeviceInfo.cs: Updated device synchronization logic. (+1/-1)
+* PackedLocalize.cs: Updated localization handling. (+1/-1)
 
 [Common Utilities (cYo.Common)]
-* Net/HttpAccess.cs: Refactored for modern HttpClient.
-* Compression/ZipFileFolder.cs: Updated compression libraries (SharpZipLib).
-* Cryptography/Password.cs: Modernized hashing algorithms.
+* Net/HttpAccess.cs: Refactored for modern HttpClient. (+2/-1)
+* Compression/ZipFileFolder.cs: Updated compression libraries (SharpZipLib). (+1/-1)
+* Cryptography/Password.cs: Modernized hashing algorithms. (+1/-1)
 * Threading/*: 
-    - BackgroundRunner.cs / ThreadUtility.cs: Updated for modern Task/Thread patterns.
+    - BackgroundRunner.cs / ThreadUtility.cs: Updated for modern Task/Thread patterns. (+15/-4)
 * Drawing/*:
-    - BitmapExtensions.cs, JpegFile.cs: Updated GDI+ / System.Drawing usage.
-* Runtime/SingleInstance.cs: Updated mutex/process handling.
+    - BitmapExtensions.cs, JpegFile.cs: Updated GDI+ / System.Drawing usage. (+21/-8)
+* Runtime/SingleInstance.cs: Updated mutex/process handling. (+79/-41)
 
 [ComicRack Application (Frontend)]
 * Program.cs:
-    - Async startup with Generic Host.
+    - Async startup with Generic Host. (+87/-16)
     - Integrated CoreWCF host for Library Server.
     - Refactored ScriptConsole initialization to prevent deadlocks.
 * ModernScriptConsole.cs (NEW):
-    - Completely replaced legacy console with non-blocking Async logic.
-* MainForm.cs: Startup sequence refactoring.
-* Controls/LibraryTreeSkin.cs: UI rendering updates.
-* Win7.cs: Taskbar integration updates.
+    - Completely replaced legacy console with non-blocking Async logic. (+565/-0)
+* MainForm.cs: Startup sequence refactoring. (+2/-2)
+* Controls/LibraryTreeSkin.cs: UI rendering updates. (+2/-1)
+* Win7.cs: Taskbar integration updates. (+4/-1)
 
 [Plugin System & Python Integration]
 * ComicRack.Plugins/PythonRuntimeManager.cs:
-    - REWRITTEN: Removed IronPython. Added Python.NET (Python.Runtime).
+    - REWRITTEN: Removed IronPython. Added Python.NET (Python.Runtime). (+908/-0)
     - Implemented explicit trace filtering and GIL management.
 * ComicRack.Plugins/Command.cs / PythonCommand.cs:
-    - Updated command pattern for new runtime.
+    - Updated command pattern for new runtime. (+85/-416)
 
 [Python Bridge & Scripts]
 * clr_bridge.py (NEW):
-    - Type marshalling layer (.NET <-> Python).
+    - Type marshalling layer (.NET <-> Python). (+119/-0)
     - Fault handler integration.
-* Autonumber.py: Python 3 type fixes (Decimal/Int).
-* Standard Scripts: Updated NewComics.py, RefreshView.py etc. for Python 3 syntax.
+* Autonumber.py: Python 3 type fixes (Decimal/Int). (+13/-8)
+* Standard Scripts: Updated NewComics.py, RefreshView.py etc. for Python 3 syntax. (+24/-33)
