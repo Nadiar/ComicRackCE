@@ -17,8 +17,8 @@ import System
 def GetStart(start):
 
 	try:
-		# Convert to string first to avoid Python int vs .NET type ambiguity
-		result = System.Convert.ToDecimal(str(start))
+		val_str = str(start) if start is not None else "1"
+		result = System.Decimal.Parse(val_str)
 	except:
 		result = 1
 	return result
@@ -50,9 +50,8 @@ def RenumberBooks(books):
 	nudStart.Size = Size(65, 20)
 	nudStart.TabIndex = 1
 	nudStart.TextAlign = HorizontalAlignment.Right
-	nudStart.Maximum = 100000000
-    # Enable decimals
-	nudStart.DecimalPlaces = 2 
+	nudStart.Maximum = System.Convert.ToDecimal("100000000")
+	nudStart.DecimalPlaces = 0
 	f.Controls.Add (nudStart)
 
 	# Second numeric up down
@@ -61,8 +60,8 @@ def RenumberBooks(books):
 	nudEnd.Size = Size(65, 20)
 	nudEnd.TabIndex = 3
 	nudEnd.TextAlign = HorizontalAlignment.Right
-	nudEnd.Maximum = 100000000
-	nudEnd.DecimalPlaces = 2
+	nudEnd.Maximum = System.Convert.ToDecimal("100000000")
+	nudEnd.DecimalPlaces = 0
 	f.Controls.Add (nudEnd)
 
 	#Set Total checkbox
@@ -120,8 +119,8 @@ def RenumberBooks(books):
 	#Select the proper values
 	start = GetStart(books[0].ShadowNumber)
 	cbSelection.SelectedIndex = 0
-	nudStart.Value = start
-	nudEnd.Value = start + books.Length -1
+	nudStart.Value = System.Decimal.Parse(str(start))
+	nudEnd.Value = start + System.Convert.ToDecimal(books.Length - 1)
 	
 	f.AutoScaleDimensions = SizeF(6, 13)
 	f.AutoScaleMode = AutoScaleMode.Font
