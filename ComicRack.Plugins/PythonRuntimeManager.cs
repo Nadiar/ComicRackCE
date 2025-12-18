@@ -23,6 +23,14 @@ namespace ComicRack.Plugins
         private PythonRuntimeManager() { }
 
         public static PythonRuntimeManager Instance => _instance.Value;
+        
+        /// <summary>
+        /// Controls whether Python execution tracing is enabled.
+        /// </summary>
+        public static bool EnablePythonTracing { get; set; }
+
+        public bool IsInitialized => _initialized;
+
 
         /// <summary>
         /// Initializes the Python runtime. Must be called before any script execution.
@@ -386,20 +394,17 @@ namespace ComicRack.Plugins
             string fullAllowedPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Scripts"));
             string fullScriptPath = Path.GetFullPath(scriptPath);
             
-            // Allow subdirectories, but base path must match
+            // 1. Extension Check (Global)
+            if (!Path.GetExtension(scriptPath).Equals(".py", StringComparison.OrdinalIgnoreCase))
+                throw new SecurityException($"Invalid script extension: {Path.GetExtension(scriptPath)}");
+
+            // 2. Path Traversal Check
             if (!fullScriptPath.StartsWith(fullAllowedPath, StringComparison.OrdinalIgnoreCase) && 
                 !fullScriptPath.Equals(Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Scripts")), StringComparison.OrdinalIgnoreCase))
             {
-                 // Also allow main directory for system scripts if needed, but for now strict check on Scripts folder + subfolders is safer
-                 // Logic adjusted: The caller usually passes a relative path or full path.
-                 // Let's check if it is within the BaseDirectory/Scripts OR BaseDirectory (for root scripts if any)
-                 // Based on usage, scripts are in Output/Scripts.
-                 // Let's use a simpler check: verify file exists and extension is .py
-                 if (!Path.GetExtension(scriptPath).Equals(".py", StringComparison.OrdinalIgnoreCase))
-                    throw new SecurityException($"Invalid script extension: {Path.GetExtension(scriptPath)}");
-                    
-                 LogManager.Info("System", $"Loading script: {scriptPath}");
+                throw new SecurityException($"Script path {scriptPath} is outside the allowed directory {fullAllowedPath}");
             }
+
             
             if (!File.Exists(scriptPath)) throw new FileNotFoundException($"Script not found: {scriptPath}");
             
