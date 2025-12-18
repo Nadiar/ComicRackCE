@@ -32,7 +32,7 @@ namespace cYo.Projects.ComicRack.Viewer
             this.lstLogs.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lstLogs.FullRowSelect = true;
             this.lstLogs.HideSelection = false;
-            this.lstLogs.Location = new System.Drawing.Point(0, 40);
+            this.lstLogs.Location = new System.Drawing.Point(0, 95);
             this.lstLogs.Name = "lstLogs";
             this.lstLogs.Size = new System.Drawing.Size(800, 410);
             this.lstLogs.TabIndex = 0;
@@ -51,7 +51,7 @@ namespace cYo.Projects.ComicRack.Viewer
             this.panelTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelTop.Location = new System.Drawing.Point(0, 0);
             this.panelTop.Name = "panelTop";
-            this.panelTop.Size = new System.Drawing.Size(800, 40);
+            this.panelTop.Size = new System.Drawing.Size(800, 95);
             this.panelTop.TabIndex = 1;
             // 
             // btReload
