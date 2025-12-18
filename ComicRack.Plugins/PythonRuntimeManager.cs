@@ -27,7 +27,21 @@ namespace ComicRack.Plugins
         /// <summary>
         /// Controls whether Python execution tracing is enabled.
         /// </summary>
-        public static bool EnablePythonTracing { get; set; }
+        public static bool EnablePythonTracing
+        {
+            get => _enablePythonTracing;
+            set
+            {
+                _enablePythonTracing = value;
+                // Set environment variable so clr_bridge.py can check it
+                Environment.SetEnvironmentVariable("COMICRACK_TRACE_ENABLED", value ? "true" : "false");
+                if (Instance.IsInitialized)
+                {
+                    Instance.SetTrace(value);
+                }
+            }
+        }
+        private static bool _enablePythonTracing;
 
         public bool IsInitialized => _initialized;
 
@@ -72,10 +86,18 @@ namespace ComicRack.Plugins
                     Runtime.PythonDLL = dllPath;
                     LogManager.Info("Python", $"Initializing Python engine: {dllPath}");
                     PythonEngine.Initialize();
-                    
+
                     _initialized = true;
                     EnsureOutputRedirection();
                     SetupSearchPath();
+
+                    // Check if module cache clear was requested before initialization
+                    if (_pendingModuleCacheClear)
+                    {
+                        ClearPythonModuleCache();
+                    }
+
+                    SetTrace(EnablePythonTracing);
                     LogManager.Info("Python", "Python engine initialized successfully.");
 
                     // Release the GIL to allow other threads to run
@@ -124,9 +146,111 @@ namespace ComicRack.Plugins
 
         private void SetupSearchPath()
         {
-            // Add BaseDirectory and Scripts folder to sys.path
             AddSearchPath(AppDomain.CurrentDomain.BaseDirectory);
             AddSearchPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Scripts"));
+        }
+
+        private void SetTrace(bool enable)
+        {
+            if (!_initialized) return;
+            using (Py.GIL())
+            {
+                try
+                {
+                    // Use clr_bridge's trace functions for consistent behavior
+                    try
+                    {
+                        dynamic bridge = Py.Import("clr_bridge");
+                        if (enable)
+                        {
+                            bridge.enable_trace();
+                            LogManager.Info("Python", "Execution tracing ENABLED via clr_bridge.");
+                        }
+                        else
+                        {
+                            bridge.disable_trace();
+                            LogManager.Info("Python", "Execution tracing DISABLED via clr_bridge.");
+                        }
+                        return;
+                    }
+                    catch
+                    {
+                        // clr_bridge not available, fall back to direct trace setup
+                    }
+
+                    // Fallback: set trace directly
+                    dynamic sys = Py.Import("sys");
+                    if (enable)
+                    {
+                        string traceFuncCode = @"
+import sys
+def _trace_func(frame, event, arg):
+    code = frame.f_code
+    filename = code.co_filename
+    if 'Scripts' in filename or (filename.endswith('.py') and '<' not in filename):
+        lineno = frame.f_lineno
+        name = code.co_name
+        if event == 'call':
+            print(f'[TRACE] CALL: {name}() at {filename}:{lineno}')
+        elif event == 'line':
+            print(f'[TRACE] LINE: {filename}:{lineno}')
+        elif event == 'return':
+            print(f'[TRACE] RETURN: {name}()')
+        elif event == 'exception':
+            exc_type, exc_value, exc_tb = arg
+            print(f'[TRACE] EXCEPTION: {exc_type.__name__}: {exc_value}')
+    return _trace_func
+sys.settrace(_trace_func)
+print('[TRACE] === Tracing ENABLED (fallback) ===')
+";
+                        PythonEngine.Exec(traceFuncCode);
+                        LogManager.Info("Python", "Execution tracing ENABLED (fallback).");
+                    }
+                    else
+                    {
+                        sys.settrace(null);
+                        LogManager.Info("Python", "Execution tracing DISABLED.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogManager.Warning("Python", $"Failed to set trace: {ex.Message}");
+                }
+            }
+        }
+
+        private void ApplyTraceToScope(PyModule scope)
+        {
+            if (!_initialized || !EnablePythonTracing) return;
+            
+            try
+            {
+                // Define trace function within the scope
+                // Output goes to stdout which is redirected to LogManager
+                string traceFuncCode = @"
+import sys
+
+def _trace_func(frame, event, arg):
+    if event == 'line':
+        code = frame.f_code
+        filename = code.co_filename
+        lineno = frame.f_lineno
+        
+        # Only trace Python script files (not system libraries)
+        if 'Scripts' in filename or filename.endswith('.py'):
+            print(f'[TRACE] {filename}:{lineno}')
+    
+    return _trace_func
+
+sys.settrace(_trace_func)
+";
+                scope.Exec(traceFuncCode);
+                LogManager.Debug("Python", "Execution tracing applied to script scope.");
+            }
+            catch (Exception ex)
+            {
+                LogManager.Warning("Python", $"Failed to apply trace to scope: {ex.Message}");
+            }
         }
 
         private PythonOutput _pythonOutput;
@@ -137,20 +261,43 @@ namespace ComicRack.Plugins
             // No strict check for PythonCommand.Output == null here, just ensure redirection is active if initialized.
             // But we should respect if it's already set.
 
-            using (Py.GIL())
+            try
             {
-                dynamic sys = Py.Import("sys");
-                // Check if already redirected to avoid recursion or multiple wrappers
-                if (sys.stdout.GetAttr("__class__").GetAttr("__name__").ToString() != "PythonOutput")
+                using (Py.GIL())
                 {
-                    _pythonOutput = new PythonOutput();
-                    sys.stdout = _pythonOutput;
-                    sys.stderr = _pythonOutput;
-                    
-                    // Python 3: print some verification
-                    LogManager.Debug("Python", "Redirection established.");
-                    PythonEngine.Exec("print('--- Python.NET Initialized ---')");
+                    dynamic sys = Py.Import("sys");
+                    // Check if already redirected to avoid recursion or multiple wrappers
+                    if (sys.stdout != null)
+                    {
+                        try
+                        {
+                            // Use Convert.ToPython to properly handle the conversion
+                            var stdoutClass = sys.stdout.GetAttr("__class__");
+                            if (stdoutClass != null)
+                            {
+                                var stdoutClassName = stdoutClass.GetAttr("__name__");
+                                if (stdoutClassName != null && stdoutClassName.ToString() != "PythonOutput")
+                                {
+                                    _pythonOutput = new PythonOutput();
+                                    sys.stdout = _pythonOutput.ToPython();
+                                    sys.stderr = _pythonOutput.ToPython();
+
+                                    // Python 3: print some verification
+                                    LogManager.Debug("Python", "Redirection established.");
+                                    PythonEngine.Exec("print('--- Python.NET Initialized ---')");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LogManager.Debug("Python", $"Could not check/set redirection: {ex.Message}");
+                        }
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                LogManager.Warning("Python", $"EnsureOutputRedirection failed: {ex.Message}");
             }
         }
 
@@ -226,73 +373,84 @@ namespace ComicRack.Plugins
         {
             if (!_initialized) return;
 
-            try
+            LogManager.Info("System", "Beginning Python runtime shutdown...");
+
+            var shutdownThread = new System.Threading.Thread(() =>
             {
-                if (PythonEngine.IsInitialized)
+                try
                 {
-                    // Regain the GIL before cleaning up
-                    // CAUTION: EndAllowThreads must theoretically be called from the same thread that called BeginAllowThreads.
-                    // However, in a shutdown scenario, we might be on a different thread.
-                    // The best we can do is try to acquire it if we are on the main thread, or just AcquireLock.
-                    // For now, we wrap in try-catch to prevent crash, as process is exiting anyway.
-                    if (_threadState != IntPtr.Zero)
+                    if (!PythonEngine.IsInitialized)
                     {
-                        try 
-                        { 
-                            PythonEngine.EndAllowThreads(_threadState); 
-                        } 
-                        catch (Exception ex)
-                        {
-                            LogManager.Warning("System", $"Could not restore thread state during shutdown: {ex.Message}");
-                        }
-                        _threadState = IntPtr.Zero;
+                        try { _initialized = false; } catch { }
+                        return;
                     }
+
+                    // Do NOT attempt to restore thread state here. EndAllowThreads must be called 
+                    // on the same thread that called BeginAllowThreads. Since we are on a background
+                    // shutdown thread, we cannot restore the state of the original initialization thread.
+                    // We will just proceed to acquire the GIL and shut down.
+                    _threadState = IntPtr.Zero;
 
                     using (Py.GIL())
                     {
                         _api = null;
+
+                        // Clear script cache
+                        if (_scriptCache != null)
+                        {
+                            foreach (var scope in _scriptCache.Values)
+                            {
+                                try { scope?.Dispose(); } catch { }
+                            }
+                            _scriptCache.Clear();
+                        }
+
                         if (_scope != null)
                         {
                             try { _scope.Dispose(); } catch { }
                             _scope = null;
                         }
 
-                        // Clear sys.stdout/stderr to break links to C# objects
+                        // Clear sys.stdout/stderr and trace to break links to C# objects
                         try
                         {
                             dynamic sys = Py.Import("sys");
+                            sys.settrace(null);
                             sys.stdout = sys.__stdout__;
                             sys.stderr = sys.__stderr__;
                         }
                         catch { }
 
-                        if (_pythonOutput != null)
-                        {
-                            // PythonOutput doesn't strictly need Dispose as it just wraps log calls, but good practice if we added IDisposable later.
-                            // For now, just null it out.
-                            _pythonOutput = null;
-                        }
+                        _pythonOutput = null;
                     }
-                    
-                    // Final engine shutdown with timeout to avoid deadlocks
-                    var shutdownTask = System.Threading.Tasks.Task.Run(() => 
-                    {
-                        try { PythonEngine.Shutdown(); } catch { }
-                    });
-                    
-                    if (!shutdownTask.Wait(5000))
-                    {
-                        LogManager.Warning("System", "PythonEngine.Shutdown timed out.");
-                    }
+
+                    // Final engine shutdown
+                    LogManager.Debug("System", "Calling PythonEngine.Shutdown...");
+                    PythonEngine.Shutdown();
+                    LogManager.Debug("System", "PythonEngine.Shutdown completed.");
                 }
-            }
-            catch (Exception ex)
+                catch (Exception ex)
+                {
+                    LogManager.Error("System", $"Error during Python shutdown: {ex.Message}");
+                }
+                finally
+                {
+                    _initialized = false;
+                }
+            });
+
+            shutdownThread.IsBackground = true;
+            shutdownThread.Start();
+            
+            // Wait for shutdown with a timeout
+            if (!shutdownThread.Join(2000)) // 2 second timeout
             {
-                LogManager.Error("System", $"Error during Python shutdown: {ex.Message}");
+                LogManager.Warning("System", "Python runtime shutdown timed out. Proceeding with application exit.");
+                // We leave the thread running (background) and let the process exit kill it
             }
-            finally
+            else
             {
-                _initialized = false;
+                LogManager.Debug("System", "Python runtime shutdown complete.");
             }
         }
 
@@ -381,6 +539,68 @@ namespace ComicRack.Plugins
         }
 
         private ConcurrentDictionary<string, PyModule> _scriptCache = new ConcurrentDictionary<string, PyModule>();
+        private volatile bool _pendingModuleCacheClear = false;
+
+        /// <summary>
+        /// Clears the script cache, forcing scripts to be reloaded on next execution.
+        /// This is needed when trace is enabled so cached scripts get trace applied.
+        /// Also clears Python's sys.modules cache for script modules.
+        /// </summary>
+        public void ClearScriptCache()
+        {
+            if (_scriptCache != null)
+            {
+                // Dispose all cached scopes first
+                foreach (var scope in _scriptCache.Values)
+                {
+                    try { scope?.Dispose(); } catch { }
+                }
+                _scriptCache.Clear();
+                LogManager.Debug("Python", "Script cache cleared.");
+            }
+
+            // Also clear Python's module cache for script-related modules
+            if (_initialized)
+            {
+                ClearPythonModuleCache();
+            }
+            else
+            {
+                // Mark for clearing when Python is next initialized/used
+                _pendingModuleCacheClear = true;
+                LogManager.Debug("Python", "Python module cache clear pending (engine not initialized).");
+            }
+        }
+
+        private void ClearPythonModuleCache()
+        {
+            try
+            {
+                using (Py.GIL())
+                {
+                    // Clear cached script modules from sys.modules so they get reimported
+                    string clearModulesCode = @"
+import sys
+modules_to_remove = [name for name in list(sys.modules.keys())
+                     if 'Scripts' in str(getattr(sys.modules.get(name), '__file__', '') or '')
+                     or name in ('clr_bridge', 'decorators')]
+for name in modules_to_remove:
+    try:
+        del sys.modules[name]
+    except:
+        pass
+print(f'[CACHE] Cleared {len(modules_to_remove)} Python modules from cache')
+";
+                    PythonEngine.Exec(clearModulesCode);
+                    LogManager.Debug("Python", "Python module cache cleared for script modules.");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.Warning("Python", $"Failed to clear Python module cache: {ex.Message}");
+            }
+            _pendingModuleCacheClear = false;
+        }
 
         /// <summary>
         /// Loads and executes a Python script file, using a cache to avoid reloading.
@@ -422,13 +642,19 @@ namespace ComicRack.Plugins
             {
                 // Create a fresh scope for this script
                 var newScope = Py.CreateScope();
-                
+
                 // Inject the API if available - do this BEFORE exec so top-level code can use it
                 if (_api != null)
                 {
                     InjectApiToScope(newScope);
                 }
-                
+
+                // Re-apply tracing to the new scope if it was enabled
+                if (EnablePythonTracing)
+                {
+                    ApplyTraceToScope(newScope);
+                }
+
                 // Run the script in the scope
                 newScope.Exec(code);
 
@@ -470,12 +696,21 @@ namespace ComicRack.Plugins
         {
             if (!_initialized) throw new InvalidOperationException("PythonRuntimeManager not initialized.");
             if (_scope == null) throw new InvalidOperationException("No script loaded (no scope).");
-            
+
+            LogManager.Debug("Python", $"CallFunction: {functionName} (trace={EnablePythonTracing})");
+
             using (Py.GIL())
             {
+                // If tracing is enabled, wrap the call in Python to get proper trace output
+                if (EnablePythonTracing)
+                {
+                    LogManager.Debug("Python", $"Using traced execution for: {functionName}");
+                    return CallFunctionWithTrace(functionName, args);
+                }
+
                 dynamic funcDyn = _scope.Get(functionName);
                 if (funcDyn == null) throw new MissingMethodException($"Function {functionName} not found in script.");
-                
+
                 // Convert dynamic/PyObject to concrete PyObject to use Invoke
                 using (PyObject func = funcDyn as PyObject)
                 {
@@ -491,14 +726,175 @@ namespace ComicRack.Plugins
                         {
                             pyArgs[i] = args[i].ToPython();
                         }
-                        return func.Invoke(pyArgs);
+                        return func.Invoke(pyArgs).AsManagedObject(typeof(object));
                     }
                     else
                     {
-                        return func.Invoke();
+                        return func.Invoke().AsManagedObject(typeof(object));
                     }
                 }
             }
         }
-    }
+
+        /// <summary>
+        /// Calls a function with Python-level tracing enabled.
+        /// This wraps the call in Python code so sys.settrace works properly.
+        /// </summary>
+        private dynamic CallFunctionWithTrace(string functionName, object[] args)
+        {
+            try
+            {
+                // Build argument string for Python call
+                var argNames = new System.Collections.Generic.List<string>();
+                if (args != null && args.Length > 0)
+                {
+                    for (int i = 0; i < args.Length; i++)
+                    {
+                        string argName = $"_trace_arg_{i}";
+                        argNames.Add(argName);
+                        _scope.Set(argName, args[i].ToPython());
+                    }
+                }
+
+                string argsStr = string.Join(", ", argNames);
+
+                // Define the callback delegate
+                Action<string, string> traceCallback = (source, message) => 
+                {
+                    // Directly pipe to LogManager
+                     LogManager.Trace(source, message);
+                };
+                
+                // Inject the callback into Python scope
+                _scope.Set("_cr_trace_callback", traceCallback);
+
+                // Build the traced call - all in Python so trace works
+                string traceWrapper = $@"
+import sys
+import traceback
+import System
+
+# Safe representation of objects to prevent crashes during tracing
+def _cr_safe_repr(obj):
+    try:
+        if obj is None:
+            return 'None'
+        # Handle .NET objects specifically if needed, but str() is usually safer than repr() for interop
+        return str(obj)[:200] 
+    except:
+        return '<repr failed>'
+
+# Trace function that calls back to C# directly
+def _cr_trace_func(frame, event, arg):
+    try:
+        code = frame.f_code
+        filename = code.co_filename
+        
+        # We only care about events in Scripts, .py files, or dynamic execution (<string>)
+        # Exclude frozen/internal '<' files if necessary, but allow basic '<string>'
+        if 'Scripts' in filename or filename.endswith('.py') or filename == '<string>':
+            lineno = frame.f_lineno
+            name = code.co_name
+            
+            message = ''
+            if event == 'call':
+                message = f'CALL: {{name}}() at {{filename}}:{{lineno}}'
+            elif event == 'line':
+                # Too noisy for now, keep line disabled unless needed, or enable just for debug
+                message = f'LINE: {{filename}}:{{lineno}}'
+            elif event == 'return':
+                val = _cr_safe_repr(arg)
+                message = f'RETURN: {{name}}() -> {{val}}'
+            elif event == 'exception':
+                exc_type, exc_value, exc_tb = arg
+                message = f'EXCEPTION in {{name}}() at {{filename}}:{{lineno}}: {{exc_type.__name__}}: {{exc_value}}'
+            
+            # Invoke the C# callback
+            if message:
+                _cr_trace_callback('PythonTrace', message)
+                
+    except Exception as e:
+        # If tracing itself fails, we try to log that fact but don't crash
+        try:
+            _cr_trace_callback('PythonTrace', f'Trace Internal Error: {{e}}')
+        except:
+            pass
+            
+    return _cr_trace_func
+
+# Set trace and call function
+_cr_result = None
+_cr_error = None
+
+_cr_trace_callback('System', '=== Starting traced execution of {functionName} ===')
+sys.settrace(_cr_trace_func)
+
+try:
+    _cr_result = {functionName}({argsStr})
+except Exception as e:
+    _cr_error = e
+    _cr_trace_callback('PythonError', f'Error during execution: {{e}}')
+    # Log full traceback
+    tb_lines = traceback.format_exception(type(e), e, e.__traceback__)
+    for line in tb_lines:
+        for sub_line in line.rstrip().split('\n'):
+            if sub_line.strip():
+                _cr_trace_callback('PythonError', sub_line)
+finally:
+    sys.settrace(None)
+    _cr_trace_callback('System', '=== Trace ended ===')
+
+if _cr_error:
+    raise _cr_error
+";
+
+                _scope.Exec(traceWrapper);
+
+                // Get result
+                dynamic result = _scope.Get("_cr_result");
+
+                // Clean up temp variables
+                foreach (var argName in argNames)
+                {
+                    try { _scope.Exec($"del {argName}"); } catch { }
+                }
+                try { _scope.Exec("del _cr_result, _cr_error, _cr_trace_func, _cr_safe_repr, _cr_trace_callback"); } catch { }
+
+                if (result != null)
+                {
+                    return ((PyObject)result).AsManagedObject(typeof(object));
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                LogManager.Warning("Python", $"Traced execution failed ({ex.Message}). Falling back to standard execution.");
+                
+                // Fallback to normal execution
+                try
+                {
+                     dynamic sys = Py.Import("sys");
+                     sys.settrace(null);
+                }
+                catch {}
+
+                dynamic funcDyn = _scope.Get(functionName);
+                using (PyObject func = funcDyn as PyObject)
+                {
+                    if (args != null && args.Length > 0)
+                    {
+                         var pyArgs = new PyObject[args.Length];
+                         for (int i = 0; i < args.Length; i++) pyArgs[i] = args[i].ToPython();
+                         return func.Invoke(pyArgs).AsManagedObject(typeof(object));
+                    }
+                    else
+                    {
+                         return func.Invoke().AsManagedObject(typeof(object));
+                    }
+                }
+            }
+        }
 }
+}
+
+
