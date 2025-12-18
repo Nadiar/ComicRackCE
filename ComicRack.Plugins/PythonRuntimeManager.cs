@@ -583,7 +583,7 @@ sys.settrace(_trace_func)
 import sys
 modules_to_remove = [name for name in list(sys.modules.keys())
                      if 'Scripts' in str(getattr(sys.modules.get(name), '__file__', '') or '')
-                     or name in ('clr_bridge', 'decorators')]
+                     or name in ('clr_bridge')]
 for name in modules_to_remove:
     try:
         del sys.modules[name]
