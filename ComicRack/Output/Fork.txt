@@ -22,41 +22,54 @@ ComicRack Community Edition (Modernization Fork):
 DETAILED TECHNICAL CHANGES (.NET 9 MIGRATION)
 --------------------------------------------------------------------------------
 
-[Build System]
+[Build System & Project Structure]
 * ComicRack.sln: Upgraded solution format to Visual Studio 2022.
-* *.csproj: Retargeted all projects to 'net9.0-windows'.
-* PreparePython.ps1 (NEW): Added PowerShell script to download independent Python 3.12 runtime.
-* CompressIconFolders.ps1 (NEW): Optimization script to manage resource assets.
+* *.csproj (All Projects): Retargeted to 'net9.0-windows'. Removed packages.config.
+* directory.build.props (NEW): Added centralized build configuration.
+* PreparePython.ps1 (NEW): Scripts to download independent Python 3.12 runtime.
 * BuildInstaller.ps1 (NEW): Unified build pipeline script.
+* CompressIconFolders.ps1 (NEW): Optimization script for resource management.
 
-[ComicRack Application]
+[Core Engine (ComicRack.Engine)]
+* IO/Network/*: 
+    - Migrated WCF services to CoreWCF (ServerRegistration, ComicLibraryServer, ComicLibraryClient).
+* IO/Provider/*:
+    - Updated Jpeg2000Image, Pdfium, and WebComicProvider for .NET 9 compatibility.
+    - ComicScanner.cs: Refactored scanning logic.
+* Sync/DeviceInfo.cs: Updated device synchronization logic.
+* PackedLocalize.cs: Updated localization handling.
+
+[Common Utilities (cYo.Common)]
+* Net/HttpAccess.cs: Refactored for modern HttpClient.
+* Compression/ZipFileFolder.cs: Updated compression libraries (SharpZipLib).
+* Cryptography/Password.cs: Modernized hashing algorithms.
+* Threading/*: 
+    - BackgroundRunner.cs / ThreadUtility.cs: Updated for modern Task/Thread patterns.
+* Drawing/*:
+    - BitmapExtensions.cs, JpegFile.cs: Updated GDI+ / System.Drawing usage.
+* Runtime/SingleInstance.cs: Updated mutex/process handling.
+
+[ComicRack Application (Frontend)]
 * Program.cs:
-    - Refactored startup logic to handle Async console initialization.
-    - Added UnhandledExceptionEventArgs logging.
+    - Async startup with Generic Host.
+    - Integrated CoreWCF host for Library Server.
+    - Refactored ScriptConsole initialization to prevent deadlocks.
 * ModernScriptConsole.cs (NEW):
-    - Completely replaced legacy synchronous console.
-    - Implemented non-blocking async UI thread handling.
-    - Added 'Export Trace' and Context Menu (Copy/Select All) features.
-* MainForm.cs:
-    - Adjusted initialization order to prevent race conditions with Script Console.
+    - Completely replaced legacy console with non-blocking Async logic.
+* MainForm.cs: Startup sequence refactoring.
+* Controls/LibraryTreeSkin.cs: UI rendering updates.
+* Win7.cs: Taskbar integration updates.
 
 [Plugin System & Python Integration]
 * ComicRack.Plugins/PythonRuntimeManager.cs:
-    - REWRITTEN: Removed IronPython dependencies.
-    - Added Python.NET (Python.Runtime) initialization logic.
-    - Implemented Initialize() with dynamic DLL location strategy.
-    - Added SetTrace() enabling full Python execution tracing.
-    - Added 'clr_bridge' import integration.
-* ComicRack.Engine/Scripting:
-    - Internal scripts updated for CPython 3 syntax compatibility.
+    - REWRITTEN: Removed IronPython. Added Python.NET (Python.Runtime).
+    - Implemented explicit trace filtering and GIL management.
+* ComicRack.Plugins/Command.cs / PythonCommand.cs:
+    - Updated command pattern for new runtime.
 
-[Python Bridge Layer]
+[Python Bridge & Scripts]
 * clr_bridge.py (NEW):
-    - Added bridge module for type marshalling (.NET <-> Python).
-    - Implemented explicit trace filtering to prevent recursion crashes.
-    - Added faulthandler support for crash logging.
-
-[Scripts]
-* Autonumber.py:
-    - Fixed integer precision/division differences (Python 2 vs 3).
-    - Added explicit casting for .NET Decimal interoperability.
+    - Type marshalling layer (.NET <-> Python).
+    - Fault handler integration.
+* Autonumber.py: Python 3 type fixes (Decimal/Int).
+* Standard Scripts: Updated NewComics.py, RefreshView.py etc. for Python 3 syntax.
