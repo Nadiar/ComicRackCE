@@ -89,11 +89,11 @@ namespace cYo.Projects.ComicRack.Viewer
             this.chkAutoScroll.UseVisualStyleBackColor = true;
             // 
             // cmbSourceFilter
-            // 
+            //
             this.cmbSourceFilter.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbSourceFilter.FormattingEnabled = true;
             this.cmbSourceFilter.Items.AddRange(new object[] { "All Sources" });
-            this.cmbSourceFilter.Location = new System.Drawing.Point(230, 10);
+            this.cmbSourceFilter.Location = new System.Drawing.Point(250, 43);
             this.cmbSourceFilter.Name = "cmbSourceFilter";
             this.cmbSourceFilter.Size = new System.Drawing.Size(121, 21);
             this.cmbSourceFilter.SelectedIndex = 0;
@@ -101,10 +101,10 @@ namespace cYo.Projects.ComicRack.Viewer
             this.cmbSourceFilter.SelectedIndexChanged += new System.EventHandler(this.cmbFilter_Changed);
             // 
             // cmbLevelFilter
-            // 
+            //
             this.cmbLevelFilter.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbLevelFilter.FormattingEnabled = true;
-            this.cmbLevelFilter.Location = new System.Drawing.Point(118, 10);
+            this.cmbLevelFilter.Location = new System.Drawing.Point(12, 43);
             this.cmbLevelFilter.Name = "cmbLevelFilter";
             this.cmbLevelFilter.Size = new System.Drawing.Size(106, 21);
             this.cmbLevelFilter.TabIndex = 4;
