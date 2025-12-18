@@ -1,0 +1,19 @@
+ComicRack Community Edition (Modernization Fork):
+
+* NEW: Migrated entire codebase from .NET Framework 4.5 to .NET 9.
+* NEW: Replaced deprecated IronPython engine with Python.NET (CPython 3.12).
+* NEW: Added automated embedded Python distribution downloader to build system (PreparePython.ps1).
+* NEW: Implemented 'clr_bridge.py' to handle type marshalling between .NET and Python.
+* NEW: Added Python Runtime Trace Reporting system. Traces are logged to 'trace_report_YYYYMMDD_HHMMSS.log' in the bin directory.
+* NEW: Modernized Script Console to run asynchronously, preventing UI freezes during script execution.
+* NEW: Added 'Export Trace' feature to Script Console.
+
+* CHANGE: Updated 'Autonumber.py' to compatible with Python 3 types (Explicit Decimal casting).
+* CHANGE: Updated High DPI support for modern Windows scaling.
+* CHANGE: Build process now uses 'dotnet build' and cleans up stale artifacts strictly.
+
+* BUGFIX: Fixed infinite recursion crash when tracing Python scripts (filtered internal traceback.py).
+* BUGFIX: Fixed 'InvalidCastException' in Autonumber.py due to ambiguous overload of System.Convert.ToDecimal.
+* BUGFIX: Fixed TypeError in Autonumber.py when adding Integer to Decimal.
+* BUGFIX: Solved file locking issues during build by ensuring generic host processes are terminated.
+* BUGFIX: Fixed display format of Autonumber wizard to remove unnecessary decimal places.
