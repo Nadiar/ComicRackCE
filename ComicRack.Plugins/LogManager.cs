@@ -51,7 +51,17 @@ namespace cYo.Projects.ComicRack.Plugins
             }
 
             LogAdded?.Invoke(entry);
+
+            // DEBUG: Write to file for shutdown debugging
+            try
+            {
+                string logFile = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "cYo", "ComicRack Community Edition", "ComicRack.log");
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logFile));
+                System.IO.File.AppendAllText(logFile, entry.ToString() + Environment.NewLine);
+            }
+            catch { }
         }
+
 
         public static void Trace(string source, string message) => Log(LogLevel.Trace, source, message);
         public static void Debug(string source, string message) => Log(LogLevel.Debug, source, message);
