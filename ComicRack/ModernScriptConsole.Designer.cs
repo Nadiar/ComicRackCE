@@ -55,8 +55,8 @@ namespace cYo.Projects.ComicRack.Viewer
             this.panelTop.TabIndex = 1;
             // 
             // btReload
-            // 
-            this.btReload.Location = new System.Drawing.Point(12, 8);
+            //
+            this.btReload.Location = new System.Drawing.Point(12, 10);
             this.btReload.Name = "btReload";
             this.btReload.Size = new System.Drawing.Size(100, 23);
             this.btReload.TabIndex = 0;
@@ -65,9 +65,9 @@ namespace cYo.Projects.ComicRack.Viewer
             this.btReload.Click += new System.EventHandler(this.btReload_Click);
             // 
             // btClear
-            // 
+            //
             this.btClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btClear.Location = new System.Drawing.Point(713, 8);
+            this.btClear.Location = new System.Drawing.Point(713, 10);
             this.btClear.Name = "btClear";
             this.btClear.Size = new System.Drawing.Size(75, 23);
             this.btClear.TabIndex = 1;
@@ -76,12 +76,12 @@ namespace cYo.Projects.ComicRack.Viewer
             this.btClear.Click += new System.EventHandler(this.btClear_Click);
             // 
             // chkAutoScroll
-            // 
-            this.chkAutoScroll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            //
+            this.chkAutoScroll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.chkAutoScroll.AutoSize = true;
             this.chkAutoScroll.Checked = true;
             this.chkAutoScroll.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAutoScroll.Location = new System.Drawing.Point(630, 12);
+            this.chkAutoScroll.Location = new System.Drawing.Point(130, 13);
             this.chkAutoScroll.Name = "chkAutoScroll";
             this.chkAutoScroll.Size = new System.Drawing.Size(77, 17);
             this.chkAutoScroll.TabIndex = 2;
