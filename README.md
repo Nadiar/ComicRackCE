@@ -47,6 +47,14 @@ The original ComicRack used **IronPython**, which is now effectively dead/legacy
 - **`clr_bridge.py`**: A custom bridge we built to handle type conversions between .NET and Python seamlessly.
 - **Embedded Downloader**: The build system now automatically fetches and embeds a standalone Python environment, zero user configuration required.
 
+### 🧠 Python Script Repair Strategy
+To modernize the 10-year-old script ecosystem for Python 3.x, we employed a multi-stage repair process:
+1. **Bridge Architecture**: Built `clr_bridge.py` to transparently handle common marshalling issues between Python.NET and the legacy IronPython environment.
+2. **Automated Conversion**: Utilized a basic python `2to3` runner to handle syntactic updates (print statements, exception syntax).
+3. **AI-Assisted Linting**: Ran static analysis and utilized **Claude Code Opus 4.5** to intelligently resolve complex logic errors and linting issues (successfully repairing all scripts except the complex `Autonumber.py`).
+4. **Trace-Driven Debugging**: Built the **Modern Script Console** with real-time Trace Functionality to capture execution flow.
+5. **Manual Adjustments**: Used the generated trace data to identify and fix obscure runtime failures in plugins that automated tools missed.
+
 ### 🛠️ Developer Tools
 Debugging scripts in the old version was a nightmare. We've added:
 - **Modern Script Console**: A non-blocking, async console that doesn't freeze the UI.
