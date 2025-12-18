@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net48</TargetFramework>
+        <TargetFramework>net9.0-windows</TargetFramework>
         <PlatformTarget>AnyCPU</PlatformTarget>
         <OutputType>WinExe</OutputType>
         <RootNamespace>cYo.Projects.ComicRack.Viewer</RootNamespace>
@@ -38,8 +38,7 @@
         <Win32Resource>myressources.res</Win32Resource>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="System.Design" />
-        <Reference Include="System.Web.Services" />
+
     </ItemGroup>
     <ItemGroup>
         <AppDesigner Include="Properties\" />
@@ -123,7 +122,7 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="Output\ComicRack.ini">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
             <TargetPath>ComicRack.ini</TargetPath>
         </Content>
         <Content Include="Output\Changes.txt">
@@ -172,16 +171,19 @@
         <RemoveDir Directories="$(OutDir)\Languages" />
         <RemoveDir Directories="$(OutDir)\Help" />
         <RemoveDir Directories="$(OutDir)\Scripts" />
+        <RemoveDir Directories="$(OutDir)\Python" />
     </Target>
-    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Target Name="PreBuild" BeforeTargets="BeforeBuild">
+        <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(SolutionDir)PreparePython.ps1&quot; -Version &quot;3.12.10&quot; -TargetDir &quot;$(ProjectDir)Output\Python&quot;" />
         <ItemGroup>
-            <OutputDirectory Include="Output\**\*.*" />
+            <OutputDirectory Include="Output\**\*.*" Exclude="Output\ComicRack.ini" />
         </ItemGroup>
-        <Copy SourceFiles="@(OutputDirectory)" DestinationFolder="$(OutDir)\%(RecursiveDir)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(OutputDirectory)" DestinationFolder="$(OutDir)%(RecursiveDir)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="Output\ComicRack.ini" DestinationFolder="$(OutDir)" Condition="!Exists('$(OutDir)ComicRack.ini')" />
         <Exec Command="git rev-parse HEAD &gt; &quot;CurrentCommit.txt&quot;&#xD;&#xA;git status --porcelain &gt; &quot;isDirty.txt&quot;&#xD;&#xA;exit 0" />
     </Target>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="cd $(OutDir)&#xD;&#xA;echo %25cd%25&#xD;&#xA;xcopy /Y x64\pdfium.dll Resources\pdfium_x64.dll*&#xD;&#xA;xcopy /Y x86\pdfium.dll Resources\pdfium_x86.dll*&#xD;&#xA;rmdir /S /Q arm64&#xD;&#xA;rmdir /S /Q Lib&#xD;&#xA;rmdir /S /Q x64&#xD;&#xA;rmdir /S /Q x86&#xD;&#xA;rmdir /S /Q de&#xD;&#xA;&#xD;&#xA;if $(Configuration) == Debug Goto :Exit&#xD;&#xA;del /Q *.pdb&#xD;&#xA;&#xD;&#xA;: Exit" />
+        <Exec Command="cd $(OutDir)&#xD;&#xA;echo %25cd%25&#xD;&#xA;xcopy /Y runtimes\win-x64\native\pdfium.dll Resources\pdfium_x64.dll*&#xD;&#xA;xcopy /Y runtimes\win-x86\native\pdfium.dll Resources\pdfium_x86.dll*&#xD;&#xA;rmdir /S /Q Lib&#xD;&#xA;rmdir /S /Q de&#xD;&#xA;&#xD;&#xA;if $(Configuration) == Debug Goto :Exit&#xD;&#xA;del /Q *.pdb&#xD;&#xA;&#xD;&#xA;: Exit" />
     </Target>
     <Target Name="CompressIconFolders" AfterTargets="PostBuild">
         <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(SolutionDir)CompressIconFolders.ps1&quot; -BaseDirectory &quot;$(OutDir)&quot;" />

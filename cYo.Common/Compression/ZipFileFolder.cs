@@ -42,7 +42,7 @@ namespace cYo.Common.Compression
 			using (Stream stream = zipFile.GetInputStream(entry))
 			{
 				byte[] array = new byte[entry.Size];
-				stream.Read(array, 0, array.Length);
+				stream.ReadExactly(array, 0, array.Length);
 				return new MemoryStream(array);
 			}
 		}

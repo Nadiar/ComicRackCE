@@ -25,7 +25,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 
 		protected override void Dispose(bool disposing)
 		{
-			thread?.Abort();
+			// thread?.Abort();
 			if (disposing)
 			{
 				if (oldImage != null)

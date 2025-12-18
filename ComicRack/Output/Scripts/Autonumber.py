@@ -6,11 +6,11 @@
 # (C)'2007 cYo Soft
 ##########################################################################
 
-import clr
-clr.AddReferenceByPartialName("System.Windows.Forms")
-clr.AddReferenceByPartialName("System.Drawing")
+import clr_bridge
+from clr_bridge import ComicRack
 from System.Windows.Forms import *
 from System.Drawing import *
+
 
 def GetStart(start):
 

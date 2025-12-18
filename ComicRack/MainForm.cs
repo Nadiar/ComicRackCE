@@ -720,9 +720,9 @@ namespace cYo.Projects.ComicRack.Viewer
 			}
 		}
 
-		public static ScriptOutputForm ScriptConsole
+		public static ModernScriptConsole ScriptConsole
 		{
-			get => Program.ScriptConsole != null ? Program.ScriptConsole : null;
+			get => Program.ScriptConsole;
 		}
 
 		public IEnumerable<string> LibraryPaths => Program.Settings.ScriptingLibraries.Replace("\n", "").Replace("\r", "").Split(';', StringSplitOptions.RemoveEmptyEntries);

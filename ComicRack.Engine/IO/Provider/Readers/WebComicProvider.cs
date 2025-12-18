@@ -55,7 +55,7 @@ namespace cYo.Projects.ComicRack.Engine.IO.Provider.Readers
 		{
 			using (FileStream inputStream = File.OpenRead(base.Source))
 			{
-				return Base32.ToBase32String(new SHA1Managed().ComputeHash(inputStream));
+				return Base32.ToBase32String(SHA1.Create().ComputeHash(inputStream));
 			}
 		}
 

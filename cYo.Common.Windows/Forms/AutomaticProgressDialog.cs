@@ -85,8 +85,9 @@ namespace cYo.Common.Windows.Forms
 			{
 				if (!thread.Join(3000))
 				{
-					thread.Abort();
-					thread.Join();
+                    // CoreWCF / .NET 9 Migration: Thread.Abort is not supported.
+					// thread.Abort();
+					// thread.Join();
 				}
 			}
 			catch
@@ -140,9 +141,6 @@ namespace cYo.Common.Windows.Forms
 			{
 				Value = -1;
 				exectuteMethod();
-			}
-			catch (ThreadAbortException)
-			{
 			}
 			catch (Exception ex2)
 			{

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Web.Services.Protocols;
+
 using System.Windows.Forms;
 using cYo.Common.ComponentModel;
 using cYo.Common.IO;
@@ -13,6 +13,7 @@ namespace cYo.Common.Net
 {
 	public class HttpAccess
 	{
+#pragma warning disable SYSLIB0014 // WebRequest is obsolete
 		public const string DefaultUserAgent = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)";
 
 		private static HashSet<string> ignored;

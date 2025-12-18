@@ -250,6 +250,20 @@ public class KnownColorTableEx
         }.Select(_ => _.ToKnownColor())
     );
 
+    		[CLSCompliant(false)]
+		public static void GetSystemColorArgb(KnownColor color, out int a, out int r, out int g, out int b)
+        {
+            uint argb = (!SystemColorsEx.s_useAlternativeColorSet)
+                ? (uint)Color.FromKnownColor(color).ToArgb()
+                : GetAlternateSystemColorArgb(color);
+
+            a = (int)((argb >> 24) & 0xFF);
+            r = (int)((argb >> 16) & 0xFF);
+            g = (int)((argb >> 8) & 0xFF);
+            b = (int)(argb & 0xFF);
+        }
+
+    [CLSCompliant(false)]
     public static uint GetSystemColorArgb(KnownColor color)
     {
         //Debug.Assert(Color.IsKnownColorSystem(color));

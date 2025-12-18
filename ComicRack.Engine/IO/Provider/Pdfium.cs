@@ -12,6 +12,7 @@ using PDFiumSharp.Types;
 
 namespace cYo.Projects.ComicRack.Engine.IO.Provider
 {
+	[CLSCompliant(false)]
     public static class Pdfium
     {
         public static PDFiumBitmap FromBitmap(Bitmap image)

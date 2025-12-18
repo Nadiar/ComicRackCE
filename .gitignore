@@ -344,3 +344,11 @@ healthchecksdb
 */Tags.txt
 /ComicRack/Properties/launchSettings.json
 /ComicRackCESetup*.exe
+
+# Ignore all dot-folders (hidden directories)
+.*/
+
+# But explicitly track GitHub-related dot-folders
+!.github/
+!.gitignore
+!.gitattributes

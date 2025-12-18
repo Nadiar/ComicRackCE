@@ -16,51 +16,70 @@ namespace cYo.Projects.ComicRack.Plugins
 
 		public override IEnumerable<Command> GetCommands(string file)
 		{
-			List<Command> list = new List<Command>();
-			try
+			List<Command> commands = new List<Command>();
+			if (".py".Equals(Path.GetExtension(file), StringComparison.OrdinalIgnoreCase))
 			{
-				if (!".py".Equals(Path.GetExtension(file), StringComparison.OrdinalIgnoreCase))
+				try
 				{
-					return list.ToArray();
-				}
-				PythonCommand pythonCommand = null;
-				foreach (string item in FileUtility.ReadLines(file).TrimStrings().RemoveEmpty())
-				{
-					Match match = rxComment.Match(item);
-					Match match2 = rxFunction.Match(item);
-					if (match.Success)
+					string[] lines = File.ReadAllLines(file);
+					string name = null, key = null, image = null, description = null, hook = null;
+					int pcount = 0;
+					bool enabled = true;
+
+					foreach (string line in lines)
 					{
-						if (pythonCommand == null)
+						Match match = rxComment.Match(line);
+						if (match.Success)
 						{
-							pythonCommand = new PythonCommand
+							string propertyName = match.Groups["name"].Value.ToLower();
+							string propertyValue = match.Groups["value"].Value.Trim();
+
+							switch (propertyName)
 							{
-								ScriptFile = Path.GetFileName(file)
-							};
+								case "name": name = propertyValue; break;
+								case "key": key = propertyValue; break;
+								case "image": image = propertyValue; break;
+								case "description": description = propertyValue; break;
+								case "hook": hook = propertyValue; break;
+								case "pcount": int.TryParse(propertyValue, out pcount); break;
+								case "enabled": bool.TryParse(propertyValue, out enabled); break;
+							}
+							continue;
 						}
-						try
+
+						match = rxFunction.Match(line);
+						if (match.Success)
 						{
-							string value = match.Groups[1].Value;
-							PropertyInfo property = pythonCommand.GetType().GetProperty(value);
-							object value2 = Convert.ChangeType(match.Groups[2].Value, property.PropertyType);
-							property.SetValue(pythonCommand, value2, null);
+							string functionName = match.Groups["function"].Value;
+							if (!string.IsNullOrEmpty(hook))
+							{
+								commands.Add(new PythonCommand
+								{
+									Name = name ?? functionName,
+									Key = key ?? functionName,
+									Image = image,
+									Description = description,
+									Hook = hook,
+									PCount = pcount,
+									Enabled = enabled,
+									ScriptFile = file,
+									Method = functionName
+								});
+							}
+							// Reset metadata for the next function, except possibly for some "global" ones if desired,
+							// but usually it's one decorator per function.
+							name = key = image = description = hook = null;
+							pcount = 0;
+							enabled = true;
 						}
-						catch
-						{
-						}
-					}
-					if (match2.Success && pythonCommand != null)
-					{
-						pythonCommand.Method = match2.Groups[1].Value;
-						list.Add(pythonCommand);
-						pythonCommand = null;
 					}
 				}
-				return list;
+				catch (Exception ex)
+				{
+					LogManager.Debug("System", $"Failed to parse Python plugin metadata from {file}: {ex.Message}");
+				}
 			}
-			catch (Exception)
-			{
-				return list;
-			}
+			return commands;
 		}
 	}
 }

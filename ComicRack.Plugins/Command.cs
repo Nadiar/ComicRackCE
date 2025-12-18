@@ -195,6 +195,7 @@ namespace cYo.Projects.ComicRack.Plugins
 
 		protected virtual void Log(string text, params object[] o)
 		{
+			LogManager.Info(Key ?? "System", string.Format(text, o));
 		}
 
 		protected virtual void OnInitialize(IPluginEnvironment env, string path)

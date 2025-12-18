@@ -68,18 +68,35 @@ namespace cYo.Projects.ComicRack.Viewer
 
 		public static bool Enabled => Program.Settings.Scripting;
 
+		private static IPluginEnvironment _lastEnv;
+
 		public static bool Initialize(IWin32Window mainWindow, IApplication app, IBrowser browser, IComicDisplay comicDisplay, IPluginConfig config, IOpenBooksManager openBooks)
 		{
 			Scripts = new PluginEngine();
 			if (!Enabled)
 				return false;
 
-			PluginEnvironment env = new PluginEnvironment(mainWindow, app, browser, comicDisplay, config, openBooks, ThemePlugin.Default);
-			Scripts.Initialize(env, Program.Paths.ScriptPath);
-			Scripts.Initialize(env, Program.Paths.ScriptPathSecondary);
+			_lastEnv = new PluginEnvironment(mainWindow, app, browser, comicDisplay, config, openBooks, ThemePlugin.Default);
+			Scripts.Initialize(_lastEnv, Program.Paths.ScriptPath);
+			Scripts.Initialize(_lastEnv, Program.Paths.ScriptPathSecondary);
 			Scripts.CommandStates = Program.Settings.PluginsStates;
+			
+			ConfigureHooks();
+			return true;
+		}
+
+		private static void ConfigureHooks()
+		{
 			ComicBookDialog.ScriptEngine = Scripts;
 			ComicBookPluginMatcher.PluginEngine = Scripts;
+			
+			// Clear existing search engines if any are from scripts
+			for (int i = SearchEngines.Engines.Count - 1; i >= 0; i--)
+			{
+				if (SearchEngines.Engines[i] is ScriptSearch)
+					SearchEngines.Engines.RemoveAt(i);
+			}
+
 			foreach (Command command in Scripts.GetCommands(PluginEngine.ScriptTypeParseComicPath))
 			{
 				Command c = command;
@@ -89,7 +106,43 @@ namespace cYo.Projects.ComicRack.Viewer
 			{
 				SearchEngines.Engines.Add(new ScriptSearch { Command = command2 });
 			}
-			return true;
+		}
+
+		public static void Reload()
+		{
+			if (Scripts == null || _lastEnv == null)
+			{
+				LogManager.Warning("System", "Script engine not initialized, cannot reload.");
+				return;
+			}
+
+			LogManager.Info("System", "Reloading plugins...");
+			LogManager.Trace("System", "Starting plugin reload sequence. Resetting engine state.");
+			try
+			{
+				Scripts.Reset();
+				LogManager.Trace("System", "Engine state reset. Re-initializing scripts from primary path...");
+				Scripts.Initialize(_lastEnv, Program.Paths.ScriptPath);
+				
+				LogManager.Trace("System", "Re-initializing scripts from secondary path...");
+				Scripts.Initialize(_lastEnv, Program.Paths.ScriptPathSecondary);
+				
+				Scripts.CommandStates = Program.Settings.PluginsStates;
+				
+				LogManager.Trace("System", "Configuring hooks and search engines...");
+				ConfigureHooks();
+				
+				// Update UI-bound plugins (like info tabs)
+				Program.MainForm.BeginInvoke(new Action(() => {
+					// This might require deeper integration to refresh everything, 
+					// but for now re-configuring hooks is the priority.
+					LogManager.Info("System", "Plugins reloaded successfully.");
+				}));
+			}
+			catch (Exception ex)
+			{
+				LogManager.Error("System", $"Error during plugin reload: {ex.Message}");
+			}
 		}
 
 		public static void CreateBookCode(Control parent, Command command, Func<IEnumerable<ComicBook>> books)
