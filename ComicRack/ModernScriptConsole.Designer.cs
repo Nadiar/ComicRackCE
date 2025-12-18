@@ -25,11 +25,28 @@ namespace cYo.Projects.ComicRack.Viewer
             this.cmbLevelFilter = new System.Windows.Forms.ComboBox();
             this.txtSearch = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.contextMenuStripLogs = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.miCopySelected = new System.Windows.Forms.ToolStripMenuItem();
             this.panelTop.SuspendLayout();
             this.SuspendLayout();
-            // 
+            //
+            // contextMenuStripLogs
+            //
+            this.contextMenuStripLogs.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.miCopySelected});
+            this.contextMenuStripLogs.Name = "contextMenuStripLogs";
+            this.contextMenuStripLogs.Size = new System.Drawing.Size(180, 26);
+            //
+            // miCopySelected
+            //
+            this.miCopySelected.Name = "miCopySelected";
+            this.miCopySelected.Size = new System.Drawing.Size(180, 26);
+            this.miCopySelected.Text = "Copy Selected";
+            this.miCopySelected.Click += new System.EventHandler(this.miCopySelected_Click);
+            //
             // lstLogs
-            // 
+            //
+            this.lstLogs.ContextMenuStrip = this.contextMenuStripLogs;
             this.lstLogs.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lstLogs.FullRowSelect = true;
             this.lstLogs.HideSelection = false;
@@ -165,5 +182,7 @@ namespace cYo.Projects.ComicRack.Viewer
         private System.Windows.Forms.ComboBox cmbSourceFilter;
         private System.Windows.Forms.TextBox txtSearch;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStripLogs;
+        private System.Windows.Forms.ToolStripMenuItem miCopySelected;
     }
 }

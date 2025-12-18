@@ -188,6 +188,11 @@ namespace cYo.Projects.ComicRack.Viewer
             }
         }
 
+        private void miCopySelected_Click(object sender, EventArgs e)
+        {
+            CopySelectedLogs();
+        }
+
         private Rectangle safeBounds;
 
         public Rectangle SafeBounds
