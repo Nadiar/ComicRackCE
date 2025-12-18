@@ -35,6 +35,23 @@ To support the community, I am releasing the decompiled version as a Community E
 
 New Features are listed [here](https://github.com/maforget/ComicRackCE/wiki/New-Features). The complete changelog is [here](https://raw.githubusercontent.com/maforget/ComicRackCE/master/ComicRack/Output/Changes.txt).
 
+## About this Fork (Modernization Projects)
+This isn't just a decompilation; it's a modernization effort to bring ComicRack into the 2020s.
+
+### 🏗️ .NET 9 Upgrade
+We have moved the entire codebase from the legacy **.NET Framework 4.5** to modern **.NET 9**. This brings massive performance improvements, better memory management, and cross-platform compatibility potential.
+
+### 🐍 Python Engine Overhaul
+The original ComicRack used **IronPython**, which is now effectively dead/legacy. We have gutted it and replaced it with **Python.NET (pythonnet)**. 
+- **Real Python 3.12**: Scripts now run on a real, embedded CPython 3.12 engine.
+- **`clr_bridge.py`**: A custom bridge we built to handle type conversions between .NET and Python seamlessly.
+- **Embedded Downloader**: The build system now automatically fetches and embeds a standalone Python environment, zero user configuration required.
+
+### 🛠️ Developer Tools
+Debugging scripts in the old version was a nightmare. We've added:
+- **Modern Script Console**: A non-blocking, async console that doesn't freeze the UI.
+- **Trace Reports**: A built-in tracing system that generates detailed logs (`trace_report_*.log`) of every function call, line execution, and exception in your scripts.
+
 ## Community Collaboration
 To collaborate, open an Issue on the tracker or use GitHub discussions. Start with small, focused Pull Requests, avoiding large, vague commits. ChatGPT can help with small code snippets but not with complete rewrites. Use Visual Studio 2022 Community Edition for development, as it's more suitable than VS Code.
 
