@@ -656,11 +656,12 @@ print(f'[CACHE] Cleared {len(modules_to_remove)} Python modules from cache')
                 }
 
                 // Compile the code with the actual filename so tracebacks show the real path
+                // We need to use Python's exec() to run the compiled code object
                 dynamic builtins = Py.Import("builtins");
                 dynamic compiled = builtins.compile(code, scriptPath, "exec");
                 
-                // Run the compiled code in the scope
-                newScope.Exec(compiled);
+                // Execute the compiled code in the scope's globals
+                builtins.exec(compiled, newScope.Variables());
 
                 // Cache it
                 _scriptCache.TryAdd(scriptPath, newScope);
