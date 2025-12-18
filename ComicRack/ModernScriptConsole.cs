@@ -168,6 +168,12 @@ namespace cYo.Projects.ComicRack.Viewer
             if (e.Control && e.KeyCode == Keys.C)
             {
                 CopySelectedLogs();
+                e.Handled = true;
+            }
+            else if (e.Control && e.KeyCode == Keys.A)
+            {
+                SelectAllVisibleItems();
+                e.Handled = true;
             }
         }
 
@@ -186,6 +192,16 @@ namespace cYo.Projects.ComicRack.Viewer
             {
                 Clipboard.SetText(sb.ToString());
             }
+        }
+
+        private void SelectAllVisibleItems()
+        {
+            lstLogs.BeginUpdate();
+            foreach (ListViewItem item in lstLogs.Items)
+            {
+                item.Selected = true;
+            }
+            lstLogs.EndUpdate();
         }
 
         private void miCopySelected_Click(object sender, EventArgs e)
