@@ -17,3 +17,46 @@ ComicRack Community Edition (Modernization Fork):
 * BUGFIX: Fixed TypeError in Autonumber.py when adding Integer to Decimal.
 * BUGFIX: Solved file locking issues during build by ensuring generic host processes are terminated.
 * BUGFIX: Fixed display format of Autonumber wizard to remove unnecessary decimal places.
+
+--------------------------------------------------------------------------------
+DETAILED TECHNICAL CHANGES (.NET 9 MIGRATION)
+--------------------------------------------------------------------------------
+
+[Build System]
+* ComicRack.sln: Upgraded solution format to Visual Studio 2022.
+* *.csproj: Retargeted all projects to 'net9.0-windows'.
+* PreparePython.ps1 (NEW): Added PowerShell script to download independent Python 3.12 runtime.
+* CompressIconFolders.ps1 (NEW): Optimization script to manage resource assets.
+* BuildInstaller.ps1 (NEW): Unified build pipeline script.
+
+[ComicRack Application]
+* Program.cs:
+    - Refactored startup logic to handle Async console initialization.
+    - Added UnhandledExceptionEventArgs logging.
+* ModernScriptConsole.cs (NEW):
+    - Completely replaced legacy synchronous console.
+    - Implemented non-blocking async UI thread handling.
+    - Added 'Export Trace' and Context Menu (Copy/Select All) features.
+* MainForm.cs:
+    - Adjusted initialization order to prevent race conditions with Script Console.
+
+[Plugin System & Python Integration]
+* ComicRack.Plugins/PythonRuntimeManager.cs:
+    - REWRITTEN: Removed IronPython dependencies.
+    - Added Python.NET (Python.Runtime) initialization logic.
+    - Implemented Initialize() with dynamic DLL location strategy.
+    - Added SetTrace() enabling full Python execution tracing.
+    - Added 'clr_bridge' import integration.
+* ComicRack.Engine/Scripting:
+    - Internal scripts updated for CPython 3 syntax compatibility.
+
+[Python Bridge Layer]
+* clr_bridge.py (NEW):
+    - Added bridge module for type marshalling (.NET <-> Python).
+    - Implemented explicit trace filtering to prevent recursion crashes.
+    - Added faulthandler support for crash logging.
+
+[Scripts]
+* Autonumber.py:
+    - Fixed integer precision/division differences (Python 2 vs 3).
+    - Added explicit casting for .NET Decimal interoperability.
