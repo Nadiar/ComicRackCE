@@ -1,0 +1,314 @@
+# Sync upstream changes from maforget/ComicRackCE
+# Creates a PR when upstream has new successful CI builds (24h+ old)
+
+name: Sync Upstream
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC
+    - cron: '0 6 * * *'
+
+  workflow_dispatch:
+    inputs:
+      skip_age_check:
+        description: 'Skip the 24-hour age requirement'
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Dry run - check but do not create PR'
+        type: boolean
+        default: false
+
+env:
+  UPSTREAM_REPO: maforget/ComicRackCE
+  UPSTREAM_BRANCH: master
+  TARGET_BRANCH: dotnet9
+  SYNC_STATE_FILE: .github/upstream-sync-state.json
+
+jobs:
+  check-upstream:
+    runs-on: ubuntu-latest
+    outputs:
+      should_sync: ${{ steps.check.outputs.should_sync }}
+      upstream_sha: ${{ steps.check.outputs.upstream_sha }}
+      upstream_sha_short: ${{ steps.check.outputs.upstream_sha_short }}
+      run_age_hours: ${{ steps.check.outputs.run_age_hours }}
+      last_synced_sha: ${{ steps.check.outputs.last_synced_sha }}
+      commit_message: ${{ steps.check.outputs.commit_message }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
+
+      - name: Check upstream for new successful builds
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SKIP_AGE_CHECK: ${{ inputs.skip_age_check }}
+        run: |
+          echo "::group::Fetching upstream workflow runs"
+
+          # Get latest successful Nightly workflow run on master
+          RUNS_JSON=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            "https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/actions/workflows/nightly.yml/runs?branch=${{ env.UPSTREAM_BRANCH }}&status=success&per_page=1")
+
+          # Extract run info
+          RUN_COUNT=$(echo "$RUNS_JSON" | jq '.total_count')
+          if [ "$RUN_COUNT" -eq 0 ]; then
+            echo "No successful upstream runs found"
+            echo "should_sync=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          UPSTREAM_SHA=$(echo "$RUNS_JSON" | jq -r '.workflow_runs[0].head_sha')
+          UPSTREAM_SHA_SHORT=$(echo "$UPSTREAM_SHA" | cut -c1-7)
+          RUN_CREATED=$(echo "$RUNS_JSON" | jq -r '.workflow_runs[0].created_at')
+          RUN_ID=$(echo "$RUNS_JSON" | jq -r '.workflow_runs[0].id')
+
+          echo "Latest successful run: $RUN_ID"
+          echo "Upstream SHA: $UPSTREAM_SHA"
+          echo "Run created: $RUN_CREATED"
+          echo "::endgroup::"
+
+          # Calculate age in hours
+          RUN_TIMESTAMP=$(date -d "$RUN_CREATED" +%s)
+          NOW_TIMESTAMP=$(date +%s)
+          AGE_SECONDS=$((NOW_TIMESTAMP - RUN_TIMESTAMP))
+          AGE_HOURS=$((AGE_SECONDS / 3600))
+
+          echo "Run age: ${AGE_HOURS} hours"
+          echo "run_age_hours=$AGE_HOURS" >> $GITHUB_OUTPUT
+
+          # Check age requirement (24 hours) unless skipped
+          if [ "$SKIP_AGE_CHECK" != "true" ] && [ "$AGE_HOURS" -lt 24 ]; then
+            echo "Run is only ${AGE_HOURS} hours old, waiting for 24h buffer"
+            echo "should_sync=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Read last synced SHA
+          LAST_SYNCED_SHA=""
+          if [ -f "${{ env.SYNC_STATE_FILE }}" ]; then
+            LAST_SYNCED_SHA=$(jq -r '.last_synced_sha // ""' "${{ env.SYNC_STATE_FILE }}")
+          fi
+
+          echo "Last synced SHA: ${LAST_SYNCED_SHA:-none}"
+          echo "last_synced_sha=$LAST_SYNCED_SHA" >> $GITHUB_OUTPUT
+
+          # Check if already synced
+          if [ "$UPSTREAM_SHA" = "$LAST_SYNCED_SHA" ]; then
+            echo "Already synced to $UPSTREAM_SHA"
+            echo "should_sync=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Get commit message for PR description
+          COMMIT_MSG=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            "https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/commits/$UPSTREAM_SHA" | \
+            jq -r '.commit.message' | head -1)
+
+          echo "should_sync=true" >> $GITHUB_OUTPUT
+          echo "upstream_sha=$UPSTREAM_SHA" >> $GITHUB_OUTPUT
+          echo "upstream_sha_short=$UPSTREAM_SHA_SHORT" >> $GITHUB_OUTPUT
+          echo "commit_message=$COMMIT_MSG" >> $GITHUB_OUTPUT
+
+          echo "::notice::New upstream changes detected: $UPSTREAM_SHA_SHORT - $COMMIT_MSG"
+
+  create-sync-pr:
+    needs: check-upstream
+    if: needs.check-upstream.outputs.should_sync == 'true' && inputs.dry_run != true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/${{ env.UPSTREAM_REPO }}.git
+          git fetch upstream ${{ env.UPSTREAM_BRANCH }}
+
+      - name: Create sync branch
+        id: branch
+        env:
+          UPSTREAM_SHA_SHORT: ${{ needs.check-upstream.outputs.upstream_sha_short }}
+        run: |
+          BRANCH_NAME="sync-upstream-${UPSTREAM_SHA_SHORT}"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+          # Check if branch already exists
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            echo "Branch $BRANCH_NAME already exists, deleting it"
+            git push origin --delete "$BRANCH_NAME" || true
+          fi
+
+          git checkout -b "$BRANCH_NAME"
+
+      - name: Attempt merge
+        id: merge
+        env:
+          UPSTREAM_SHA: ${{ needs.check-upstream.outputs.upstream_sha }}
+        run: |
+          echo "::group::Attempting merge"
+
+          if git merge "$UPSTREAM_SHA" --no-edit -m "Merge upstream ${{ needs.check-upstream.outputs.upstream_sha_short }}"; then
+            echo "merge_status=clean" >> $GITHUB_OUTPUT
+            echo "Merge completed cleanly"
+          else
+            echo "merge_status=conflict" >> $GITHUB_OUTPUT
+            echo "::warning::Merge has conflicts that need manual resolution"
+
+            # List conflicted files
+            echo "Conflicted files:"
+            git diff --name-only --diff-filter=U
+
+            # Abort merge for now - PR will show the issue
+            git merge --abort
+
+            # Create branch pointing at upstream for manual merge
+            git reset --hard "origin/${{ env.TARGET_BRANCH }}"
+          fi
+
+          echo "::endgroup::"
+
+      - name: Push sync branch
+        env:
+          BRANCH_NAME: ${{ steps.branch.outputs.branch_name }}
+        run: |
+          git push -u origin "$BRANCH_NAME"
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ steps.branch.outputs.branch_name }}
+          MERGE_STATUS: ${{ steps.merge.outputs.merge_status }}
+          UPSTREAM_SHA: ${{ needs.check-upstream.outputs.upstream_sha }}
+          UPSTREAM_SHA_SHORT: ${{ needs.check-upstream.outputs.upstream_sha_short }}
+          COMMIT_MESSAGE: ${{ needs.check-upstream.outputs.commit_message }}
+          RUN_AGE: ${{ needs.check-upstream.outputs.run_age_hours }}
+          LAST_SHA: ${{ needs.check-upstream.outputs.last_synced_sha }}
+        run: |
+          if [ "$MERGE_STATUS" = "clean" ]; then
+            TITLE="⬆️ Sync upstream: ${UPSTREAM_SHA_SHORT}"
+            BODY="## Upstream Sync
+
+          This PR merges changes from [maforget/ComicRackCE](https://github.com/${{ env.UPSTREAM_REPO }}).
+
+          ### Details
+          - **Upstream commit:** [\`${UPSTREAM_SHA_SHORT}\`](https://github.com/${{ env.UPSTREAM_REPO }}/commit/${UPSTREAM_SHA})
+          - **Commit message:** ${COMMIT_MESSAGE}
+          - **CI age:** ${RUN_AGE} hours (passed 24h stability gate)
+          - **Previous sync:** ${LAST_SHA:-none}
+
+          ### Status
+          ✅ **Merge is clean** - no conflicts detected.
+
+          ### Next Steps
+          1. Review the changes
+          2. Ensure CI passes
+          3. Merge when ready
+
+          ---
+          *Automated by [sync-upstream.yml](/.github/workflows/sync-upstream.yml)*"
+          else
+            TITLE="⚠️ Sync upstream: ${UPSTREAM_SHA_SHORT} (conflicts)"
+            BODY="## Upstream Sync (Manual Merge Required)
+
+          This PR attempts to merge changes from [maforget/ComicRackCE](https://github.com/${{ env.UPSTREAM_REPO }}).
+
+          ### Details
+          - **Upstream commit:** [\`${UPSTREAM_SHA_SHORT}\`](https://github.com/${{ env.UPSTREAM_REPO }}/commit/${UPSTREAM_SHA})
+          - **Commit message:** ${COMMIT_MESSAGE}
+          - **CI age:** ${RUN_AGE} hours (passed 24h stability gate)
+          - **Previous sync:** ${LAST_SHA:-none}
+
+          ### Status
+          ⚠️ **Merge has conflicts** - manual resolution required.
+
+          ### Manual Merge Steps
+          \`\`\`bash
+          git fetch origin ${BRANCH_NAME}
+          git checkout ${BRANCH_NAME}
+          git fetch upstream ${UPSTREAM_SHA}
+          git merge ${UPSTREAM_SHA}
+          # Resolve conflicts...
+          git add .
+          git commit
+          git push
+          \`\`\`
+
+          ---
+          *Automated by [sync-upstream.yml](/.github/workflows/sync-upstream.yml)*"
+          fi
+
+          gh pr create \
+            --base "${{ env.TARGET_BRANCH }}" \
+            --head "$BRANCH_NAME" \
+            --title "$TITLE" \
+            --body "$BODY" \
+            --label "upstream-sync"
+
+      - name: Update sync state
+        if: steps.merge.outputs.merge_status == 'clean'
+        env:
+          UPSTREAM_SHA: ${{ needs.check-upstream.outputs.upstream_sha }}
+        run: |
+          # Update state file on the target branch
+          git checkout "${{ env.TARGET_BRANCH }}"
+          git pull origin "${{ env.TARGET_BRANCH }}"
+
+          mkdir -p .github
+          cat > "${{ env.SYNC_STATE_FILE }}" << EOF
+          {
+            "last_synced_sha": "$UPSTREAM_SHA",
+            "last_sync_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "last_sync_pr": "pending"
+          }
+          EOF
+
+          git add "${{ env.SYNC_STATE_FILE }}"
+          git commit -m "chore: update upstream sync state to ${{ needs.check-upstream.outputs.upstream_sha_short }}"
+          git push origin "${{ env.TARGET_BRANCH }}"
+
+  dry-run-report:
+    needs: check-upstream
+    if: inputs.dry_run == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Dry Run Report
+        env:
+          SHOULD_SYNC: ${{ needs.check-upstream.outputs.should_sync }}
+          UPSTREAM_SHA: ${{ needs.check-upstream.outputs.upstream_sha }}
+          UPSTREAM_SHA_SHORT: ${{ needs.check-upstream.outputs.upstream_sha_short }}
+          RUN_AGE: ${{ needs.check-upstream.outputs.run_age_hours }}
+          LAST_SHA: ${{ needs.check-upstream.outputs.last_synced_sha }}
+          COMMIT_MSG: ${{ needs.check-upstream.outputs.commit_message }}
+        run: |
+          echo "## Dry Run Report"
+          echo ""
+          echo "| Check | Value |"
+          echo "|-------|-------|"
+          echo "| Should sync | $SHOULD_SYNC |"
+          echo "| Upstream SHA | $UPSTREAM_SHA_SHORT |"
+          echo "| Run age | ${RUN_AGE}h |"
+          echo "| Last synced | ${LAST_SHA:-none} |"
+          echo "| Commit message | $COMMIT_MSG |"
+          echo ""
+          if [ "$SHOULD_SYNC" = "true" ]; then
+            echo "✅ Would create a PR to sync upstream changes"
+          else
+            echo "ℹ️ No sync needed at this time"
+          fi
