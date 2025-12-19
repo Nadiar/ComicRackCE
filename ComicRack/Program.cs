@@ -52,6 +52,7 @@ using cYo.Projects.ComicRack.Engine.Backup;
 using ComicRack.Plugins;
 
 
+
 namespace cYo.Projects.ComicRack.Viewer
 {
 	public static class Program

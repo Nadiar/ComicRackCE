@@ -62,6 +62,7 @@ namespace cYo.Projects.ComicRack.Engine.IO.Network
 		private readonly Func<ComicLibrary> getComicLibrary;
 		private readonly Cache<Guid, IImageProvider> providerCache = new Cache<Guid, IImageProvider>(EngineConfiguration.Default.ServerProviderCacheSize);
 
+
 		public static X509Certificate2 Certificate
 		{
 			get
@@ -265,7 +266,8 @@ public bool IsRunning => _host != null && _host.Lifetime.ApplicationStopping.IsC
             var ip = GetClientIp();
             if (ip != null)
 			    Statistics.Add(ip.ToString(), type, size);
-		}
+        }
+
 
 		public void Stop()
 		{

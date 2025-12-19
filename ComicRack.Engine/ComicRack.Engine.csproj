@@ -24,7 +24,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>DLL\sharpPDF.dll</HintPath>
     </Reference>
-
   </ItemGroup>
   <ItemGroup>
     <AppDesigner Include="Properties\" />

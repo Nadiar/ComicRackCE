@@ -2,7 +2,11 @@
 
 # ComicRack Community Edition
 
+<<<<<<< HEAD
 <b><u><span style='font-size:14.0pt'>Download Links</span></u></b>
+=======
+<b><u><span style='font-size:14.0pt'>👇 Download Links 👇</span></u></b>
+>>>>>>> upstream/master
 
 <!--
 <p>
@@ -29,6 +33,7 @@
 
 ---
 
+<<<<<<< HEAD
 ## About this Fork (Modernization Projects)
 This isn't just a decompilation; it's a modernization effort to bring ComicRack into the 2020s.
 
@@ -56,6 +61,8 @@ Debugging scripts in the old version was a nightmare. We've added:
 
 ---
 
+=======
+>>>>>>> upstream/master
 This project aims to revive the legendary Comic Manager, ComicRack, which hasn't been updated in 10 years. Despite attempts to contact the original author, Markus Eisenstöck (cYo), the app was removed from stores, and users had to rely on cracked versions. If Markus reappears and requests this project to be taken down, I will comply.
 
 To support the community, I am releasing the decompiled version as a Community Edition. Although commercial use can't be prevented, I discourage rebranding and selling it. Please keep expectations realistic; major overhauls, like rewriting the entire program or UI, aren't on the horizon. As a hobbyist programmer, I can handle most code but with time. If you're eager for a new feature, I encourage you to consider implementing it yourself—it's what makes this the Community Edition.
@@ -76,6 +83,7 @@ You can also install it via winget `winget install ComicRackCE`.
 >
 > Link to lastest Visual C++ Redistributable 2015-2022: https://aka.ms/vs/17/release/vc_redist.x64.exe
 
+<<<<<<< HEAD
 > [!IMPORTANT]
 > * This build is currently under development and may undergo daily changes. Bugs resulting from the decompiling process may still exist, so exercise caution when upgrading.
 > * Users have reported false positives from Windows Defender and not every version can be submitted for removal.
@@ -90,6 +98,22 @@ You can also install it via winget `winget install ComicRackCE`.
 > * There is now a built-in [Backup Manager](https://github.com/maforget/ComicRackCE/wiki/Backup-Manager) to help you backup your database.
 > * Use the News window within the application to stay informed about the latest builds.
 > * Check the [ComicRackCE wiki](https://github.com/maforget/ComicRackCE/wiki) for additional tips and information.
+=======
+>[!IMPORTANT]
+>* This build is currently under development and may undergo daily changes. Bugs resulting from the decompiling process may still exist, so exercise caution when upgrading.
+>* Users have reported false positives from Windows Defender and not every version can be submitted for removal.
+>    * Builds provided are automatically compiled by GitHub servers, ensuring that the downloaded file matches the code in this repository.
+
+>[!WARNING]
+>* This version introduces new smart list fields not found in classic ComicRack. Do not open a database that utilizes these fields in an older version, as it will reset your database.
+>* Always maintain backups.
+
+>[!TIP]
+>* Before installing the Community Edition, uninstalling the original ComicRack is suggested to avoid duplicates in the Open With menu.
+>* There is now a built-in [Backup Manager](https://github.com/maforget/ComicRackCE/wiki/Backup-Manager) to help you backup your database.
+>* Use the News window within the application to stay informed about the latest builds.
+>* Check the [ComicRackCE wiki](https://github.com/maforget/ComicRackCE/wiki) for additional tips and information.
+>>>>>>> upstream/master
 
 ### Upgrading from classic ComicRack
 

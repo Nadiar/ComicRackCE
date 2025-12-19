@@ -345,6 +345,7 @@ healthchecksdb
 */Tags.txt
 /ComicRack/Properties/launchSettings.json
 /ComicRackCESetup*.exe
+<<<<<<< HEAD
 
 # Ignore all dot-folders (hidden directories)
 .*/
@@ -363,3 +364,5 @@ ComicRack/Output/Python/*.cat
 
 # Backup files
 **/*.bak
+=======
+>>>>>>> upstream/master

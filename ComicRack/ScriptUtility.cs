@@ -98,6 +98,7 @@ namespace cYo.Projects.ComicRack.Viewer
 					SearchEngines.Engines.RemoveAt(i);
 			}
 
+
 			foreach (Command command in Scripts.GetCommands(PluginEngine.ScriptTypeParseComicPath))
 			{
 				Command c = command;
