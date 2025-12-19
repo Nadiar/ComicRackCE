@@ -4,17 +4,17 @@
 
 <b><u><span style='font-size:14.0pt'>Download Links</span></u></b>
 
-<!--
+### .NET 9 Development (This Fork)
 <p>
-<a href="https://github.com/maforget/ComicRack_AmazonScrapper/releases/latest/download/ComicRackCESetup.zip" alt="Latest Release (ZIP)">
-  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?label=latest release&logo=github" /></a>
-<a href="https://github.com/maforget/ComicRack_AmazonScrapper/releases/latest/download/ComicRackCESetup.exe" alt="Latest Release (EXE)">
-  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?label=latest release (installer)&logo=github" /></a> 
+<a href="https://github.com/Nadiar/ComicRackCE/releases/download/nightly/ComicRackCE_nightly.zip" alt="Nightly (ZIP)">
+  <img src="https://img.shields.io/github/v/release/Nadiar/ComicRackCE?include_prereleases&logo=GitHub&label=pre-release%20(zip)" /></a>
+<a href="https://github.com/Nadiar/ComicRackCE/releases/download/nightly/ComicRackCESetup_nightly.exe" alt="Nightly (EXE)">
+  <img src="https://img.shields.io/github/v/release/Nadiar/ComicRackCE?include_prereleases&logo=GitHub&label=pre-release%20(installer)" /></a>
 <br>
-  <img src="https://img.shields.io/github/release-date/maforget/ComicRackCE?logo=github&label=Released" /></a>    
+  <img src="https://img.shields.io/github/release-date-pre/Nadiar/ComicRackCE?logo=github&label=Released" /></a>   
 </p>
--->
 
+### Classic .NET 4.5 (Maforget)
 <p>
 <a href="https://github.com/maforget/ComicRackCE/releases/download/nightly/ComicRackCE_nightly.zip" alt="Nightly (ZIP)">
   <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?include_prereleases&logo=GitHub&label=pre-release%20(zip)" /></a>
