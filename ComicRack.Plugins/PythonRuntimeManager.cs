@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security;
 using Python.Runtime;
@@ -35,9 +36,11 @@ namespace ComicRack.Plugins
                 _enablePythonTracing = value;
                 // Set environment variable so clr_bridge.py can check it
                 Environment.SetEnvironmentVariable("COMICRACK_TRACE_ENABLED", value ? "true" : "false");
-                if (Instance.IsInitialized)
+                // Use IsValueCreated to check without triggering Lazy<T> factory
+                // This prevents "ValueFactory attempted to access Value" recursion error
+                if (_instance.IsValueCreated && _instance.Value.IsInitialized)
                 {
-                    Instance.SetTrace(value);
+                    _instance.Value.SetTrace(value);
                 }
             }
         }
@@ -88,6 +91,12 @@ namespace ComicRack.Plugins
                     PythonEngine.Initialize();
 
                     _initialized = true;
+
+                    // IMPORTANT: Force pythonnet's internal modules to initialize NOW
+                    // This prevents a Lazy<T> recursion bug in InteropModule that occurs
+                    // if an exception is thrown before these modules are ready
+                    WarmUpPythonNet();
+
                     EnsureOutputRedirection();
                     SetupSearchPath();
 
@@ -148,6 +157,50 @@ namespace ComicRack.Plugins
         {
             AddSearchPath(AppDomain.CurrentDomain.BaseDirectory);
             AddSearchPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Scripts"));
+        }
+
+        /// <summary>
+        /// Forces pythonnet's internal lazy modules to initialize immediately.
+        /// This prevents a Lazy&lt;T&gt; recursion bug where InteropModule throws
+        /// "ValueFactory attempted to access the Value property" if an exception
+        /// occurs before these modules are initialized.
+        /// </summary>
+        private void WarmUpPythonNet()
+        {
+            try
+            {
+                // Import key modules that pythonnet uses internally
+                // This forces their Lazy<T> initialization to complete
+                Py.Import("sys");
+                Py.Import("builtins");
+                Py.Import("traceback");
+
+                // Force a harmless operation that triggers InteropModule initialization
+                // by doing something that would use Python exception handling
+                try
+                {
+                    PythonEngine.Exec("_ = 1");  // Simple exec to warm up internals
+                }
+                catch { }
+
+                // Access the clr module to ensure it's ready
+                try
+                {
+                    Py.Import("clr");
+                }
+                catch (Exception ex)
+                {
+                    LogManager.Error("Python", $"Failed to warm up 'clr' module: {ex.Message}");
+                    throw; // Re-throw so we don't assume initialization worked
+                }
+
+                LogManager.Debug("Python", "Python.NET internals warmed up successfully.");
+            }
+            catch (Exception ex)
+            {
+                LogManager.Warning("Python", $"WarmUpPythonNet had issues: {ex.Message}");
+                // If it was the clr import that failed, we probably want to know.
+            }
         }
 
         private void SetTrace(bool enable)
@@ -584,8 +637,16 @@ import sys
 modules_to_remove = [name for name in list(sys.modules.keys())
                      if 'Scripts' in str(getattr(sys.modules.get(name), '__file__', '') or '')
                      or name in ('clr_bridge')]
+
+# Protection: never remove clr or Python.Runtime
+if 'clr' in modules_to_remove:
+    modules_to_remove.remove('clr')
+if 'Python.Runtime' in modules_to_remove:
+    modules_to_remove.remove('Python.Runtime')
+
 for name in modules_to_remove:
     try:
+        print(f'[CACHE] Deleting module: {name}')
         del sys.modules[name]
     except:
         pass
@@ -659,9 +720,54 @@ print(f'[CACHE] Cleared {len(modules_to_remove)} Python modules from cache')
                 // We need to use Python's exec() to run the compiled code object
                 dynamic builtins = Py.Import("builtins");
                 dynamic compiled = builtins.compile(code, scriptPath, "exec");
-                
+
                 // Execute the compiled code in the scope's globals
-                builtins.exec(compiled, newScope.Variables());
+                // Use a wrapper that catches and prints Python errors before they hit pythonnet's
+                // buggy InteropModule Lazy<T> which masks the real error
+                string wrapperCode = $@"
+import sys
+import traceback
+try:
+    exec(__compiled_code__, __scope_globals__)
+except Exception as e:
+    # Print to stderr which goes to LogManager
+    traceback.print_exc()
+    # Store the error for C# to retrieve
+    __python_error__ = traceback.format_exc()
+    raise
+";
+                newScope.Set("__compiled_code__", compiled);
+                newScope.Set("__scope_globals__", newScope.Variables());
+                newScope.Set("__python_error__", (object)null);
+
+                try
+                {
+                    PythonEngine.Exec(wrapperCode, newScope.Variables());
+                }
+                catch (Exception ex)
+                {
+                    // Try to get the stored Python error
+                    try
+                    {
+                        var pyError = newScope.Get<string>("__python_error__");
+                        if (!string.IsNullOrEmpty(pyError))
+                        {
+                            LogManager.Error("Python", $"Python error during script load:\n{pyError}");
+                        }
+                    }
+                    catch
+                    {
+                        LogManager.Error("Python", $"Script execution error: {ex.Message}");
+                    }
+                    throw;
+                }
+
+                // Clean up wrapper variables
+                try
+                {
+                    newScope.Exec("del __compiled_code__, __scope_globals__, __python_error__");
+                }
+                catch { }
 
                 // Cache it
                 _scriptCache.TryAdd(scriptPath, newScope);

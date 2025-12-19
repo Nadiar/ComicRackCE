@@ -41,41 +41,63 @@ namespace cYo.Projects.ComicRack.Plugins
         // and, if a method name is provided, attempts to invoke it.
         protected override object OnInvoke(object[] data)
         {
-            var manager = PythonRuntimeManager.Instance;
-            manager.Initialize();
-
-            // Inject the environment (API) so that 'ComicRack' is available in the script scope
-            if (Environment != null)
+            try
             {
-                manager.SetApi(Environment);
+                LogManager.Debug("Script", $"OnInvoke starting for {ScriptFile}, Method={Method}");
+                var manager = PythonRuntimeManager.Instance;
+                LogManager.Debug("Script", "Got PythonRuntimeManager.Instance");
+                manager.Initialize();
+                LogManager.Debug("Script", "Manager initialized");
+
+                // Inject the environment (API) so that 'ComicRack' is available in the script scope
+                if (Environment != null)
+                {
+                    manager.SetApi(Environment);
+                    LogManager.Debug("Script", "API set");
+                }
+
+                // Resolve full script path relative to the application base directory.
+                string scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScriptFile ?? string.Empty);
+
+                // Add script folder to search path dynamically
+                string scriptDir = Path.GetDirectoryName(scriptPath);
+                manager.AddSearchPath(scriptDir);
+                LogManager.Debug("Script", $"Loading script: {scriptPath}");
+
+                manager.LoadScript(scriptPath);
+                LogManager.Debug("Script", "Script loaded");
+
+                // If a method name is specified, call it and return the result.
+                if (!string.IsNullOrEmpty(Method))
+                {
+                    try
+                    {
+                        LogManager.Debug("Script", $"Calling function: {Method}");
+                        return manager.CallFunction(Method, data);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the error as Error so it appears red in the console
+                        LogManager.Error("Script", $"Error invoking Python method '{Method}': {ex.Message}");
+                        throw;
+                    }
+                }
+
+                // No method to invoke – return null.
+                return null;
             }
-
-            // Resolve full script path relative to the application base directory.
-            string scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScriptFile ?? string.Empty);
-            
-            // Add script folder to search path dynamically
-            string scriptDir = Path.GetDirectoryName(scriptPath);
-            manager.AddSearchPath(scriptDir);
-            
-            manager.LoadScript(scriptPath);
-
-            // If a method name is specified, call it and return the result.
-            if (!string.IsNullOrEmpty(Method))
+            catch (Exception ex)
             {
-                try
+                // Log full stack trace to help debug Lazy<T> recursion issues
+                LogManager.Error("Script", $"FULL EXCEPTION in OnInvoke: {ex.GetType().Name}: {ex.Message}");
+                LogManager.Error("Script", $"Stack trace:\n{ex.StackTrace}");
+                if (ex.InnerException != null)
                 {
-                    return manager.CallFunction(Method, data);
+                    LogManager.Error("Script", $"Inner exception: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
+                    LogManager.Error("Script", $"Inner stack trace:\n{ex.InnerException.StackTrace}");
                 }
-                catch (Exception ex)
-                {
-                    // Log the error as Error so it appears red in the console
-                    LogManager.Error("Script", $"Error invoking Python method '{Method}': {ex.Message}");
-                    throw;
-                }
+                throw;
             }
-
-            // No method to invoke – return null.
-            return null;
         }
 
         protected override void Log(string text, params object[] o)
