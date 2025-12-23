@@ -1,0 +1,4 @@
+# Local ignore rules for developer temp files
+# Add any files you want to keep out of git but use for local work
+
+temp_origin_scriptutility.cs
