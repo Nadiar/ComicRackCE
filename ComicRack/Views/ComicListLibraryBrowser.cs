@@ -1357,6 +1357,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 						string selectedPath = dialog.SelectedPath;
 						ExportFolderListsToFile(shareableComicListItem, true, selectedPath); // TODO: find a way to choose alwaysList
 					}
+
 				}
 			}
 			else
@@ -1416,7 +1417,10 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 					ExportListToFile(list, alwaysList, fileName);
 				}
 			}
+
 		}
+
+
 
 		private IComparer<ComicBook> GetCurrentListSorter(string sortKey)
 		{
@@ -1446,6 +1450,8 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 				return false;
 			}
 		}
+
+
 
 		private void PasteList()
 		{

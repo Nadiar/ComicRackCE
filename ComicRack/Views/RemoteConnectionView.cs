@@ -246,8 +246,11 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			{
 				if (!thread.Join(2000))
 				{
-					thread.Abort();
-					thread.Join();
+                    // CoreWCF / .NET 9 Migration: Thread.Abort is not supported.
+                    // cancelConnection flag was already set to true. 
+                    // If the thread is stuck in blocking I/O, we cannot force kill it.
+					// thread.Abort();
+					// thread.Join();
 				}
 			}
 		}

@@ -13,7 +13,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using static IronPython.Modules._ast;
+
 
 namespace cYo.Projects.ComicRack.Viewer.Dialogs
 {

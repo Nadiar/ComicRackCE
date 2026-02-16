@@ -50,7 +50,8 @@ namespace cYo.Projects.ComicRack.Viewer.Controls
 			}
 			Graphics graphics = di.Graphics;
 			Font font = FC.Get(di.Font, di.Font.Size * 0.75f);
-			Rectangle rc = new Rectangle(di.LabelBounds.Right + 4, di.ItemBounds.Top, di.ItemBounds.Right - di.LabelBounds.Right - 4, di.ItemBounds.Height);
+            int rightEdge = (di.Node.TreeView != null) ? di.Node.TreeView.ClientSize.Width : di.ItemBounds.Right;
+			Rectangle rc = new Rectangle(di.LabelBounds.Right + 4, di.ItemBounds.Top, rightEdge - di.LabelBounds.Right - 4, di.ItemBounds.Height);
 			int num = (Program.Settings.LibraryGaugesFormat.HasFlag(LibraryGauges.Numeric) ? DrawMarkers(graphics, rc, font, comicListItem, 0, onlyMeasure: true) : int.MaxValue);
 			if (num < rc.Width)
 			{
