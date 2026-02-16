@@ -1,0 +1,75 @@
+ComicRack Community Edition (Modernization Fork):
+
+* NEW: Migrated entire codebase from .NET Framework 4.5 to .NET 9.
+* NEW: Replaced deprecated IronPython engine with Python.NET (CPython 3.12).
+* NEW: Added automated embedded Python distribution downloader to build system (PreparePython.ps1).
+* NEW: Implemented 'clr_bridge.py' to handle type marshalling between .NET and Python.
+* NEW: Added Python Runtime Trace Reporting system. Traces are logged to 'trace_report_YYYYMMDD_HHMMSS.log' in the bin directory.
+* NEW: Modernized Script Console to run asynchronously, preventing UI freezes during script execution.
+* NEW: Added 'Export Trace' feature to Script Console.
+
+* CHANGE: Updated 'Autonumber.py' to compatible with Python 3 types (Explicit Decimal casting).
+* CHANGE: Updated High DPI support for modern Windows scaling.
+* CHANGE: Build process now uses 'dotnet build' and cleans up stale artifacts strictly.
+
+* BUGFIX: Fixed infinite recursion crash when tracing Python scripts (filtered internal traceback.py).
+* BUGFIX: Fixed 'InvalidCastException' in Autonumber.py due to ambiguous overload of System.Convert.ToDecimal.
+* BUGFIX: Fixed TypeError in Autonumber.py when adding Integer to Decimal.
+* BUGFIX: Solved file locking issues during build by ensuring generic host processes are terminated.
+* BUGFIX: Fixed display format of Autonumber wizard to remove unnecessary decimal places.
+
+--------------------------------------------------------------------------------
+DETAILED TECHNICAL CHANGES (.NET 9 MIGRATION)
+--------------------------------------------------------------------------------
+
+[Build System & Project Structure]
+* ComicRack.sln: Upgraded solution format to Visual Studio 2022.
+* *.csproj (All Projects): Retargeted to 'net9.0-windows'. Removed packages.config. (+50/-30)
+* directory.build.props (NEW): Added centralized build configuration. (+5/-1)
+* PreparePython.ps1 (NEW): Scripts to download independent Python 3.12 runtime. (+45/-0)
+* BuildInstaller.ps1 (NEW): Unified build pipeline script.
+* CompressIconFolders.ps1 (NEW): Optimization script for resource management.
+
+[Core Engine (ComicRack.Engine)]
+* IO/Network/*: 
+    - Migrated WCF services to CoreWCF (ServerRegistration, ComicLibraryServer, ComicLibraryClient). (+188/-539)
+* IO/Provider/*:
+    - Updated Jpeg2000Image, Pdfium, and WebComicProvider for .NET 9 compatibility. (+7/-5)
+    - ComicScanner.cs: Refactored scanning logic. (+7/-3)
+* Sync/DeviceInfo.cs: Updated device synchronization logic. (+1/-1)
+* PackedLocalize.cs: Updated localization handling. (+1/-1)
+
+[Common Utilities (cYo.Common)]
+* Net/HttpAccess.cs: Refactored for modern HttpClient. (+2/-1)
+* Compression/ZipFileFolder.cs: Updated compression libraries (SharpZipLib). (+1/-1)
+* Cryptography/Password.cs: Modernized hashing algorithms. (+1/-1)
+* Threading/*: 
+    - BackgroundRunner.cs / ThreadUtility.cs: Updated for modern Task/Thread patterns. (+15/-4)
+* Drawing/*:
+    - BitmapExtensions.cs, JpegFile.cs: Updated GDI+ / System.Drawing usage. (+21/-8)
+* Runtime/SingleInstance.cs: Updated mutex/process handling. (+79/-41)
+
+[ComicRack Application (Frontend)]
+* Program.cs:
+    - Async startup with Generic Host. (+87/-16)
+    - Integrated CoreWCF host for Library Server.
+    - Refactored ScriptConsole initialization to prevent deadlocks.
+* ModernScriptConsole.cs (NEW):
+    - Completely replaced legacy console with non-blocking Async logic. (+565/-0)
+* MainForm.cs: Startup sequence refactoring. (+2/-2)
+* Controls/LibraryTreeSkin.cs: UI rendering updates. (+2/-1)
+* Win7.cs: Taskbar integration updates. (+4/-1)
+
+[Plugin System & Python Integration]
+* ComicRack.Plugins/PythonRuntimeManager.cs:
+    - REWRITTEN: Removed IronPython. Added Python.NET (Python.Runtime). (+908/-0)
+    - Implemented explicit trace filtering and GIL management.
+* ComicRack.Plugins/Command.cs / PythonCommand.cs:
+    - Updated command pattern for new runtime. (+85/-416)
+
+[Python Bridge & Scripts]
+* clr_bridge.py (NEW):
+    - Type marshalling layer (.NET <-> Python). (+119/-0)
+    - Fault handler integration.
+* Autonumber.py: Python 3 type fixes (Decimal/Int). (+13/-8)
+* Standard Scripts: Updated NewComics.py, RefreshView.py etc. for Python 3 syntax. (+24/-33)

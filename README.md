@@ -2,26 +2,26 @@
 
 # ComicRack Community Edition
 
-<b><u><span style='font-size:14.0pt'>👇 Download Links 👇</span></u></b>
+<b><u><span style='font-size:14.0pt'>Download Links</span></u></b>
 
-<!--
+### .NET 9 Development (This Fork)
 <p>
-<a href="https://github.com/maforget/ComicRack_AmazonScrapper/releases/latest/download/ComicRackCESetup.zip" alt="Latest Release (ZIP)">
-  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?label=latest release&logo=github" /></a>
-<a href="https://github.com/maforget/ComicRack_AmazonScrapper/releases/latest/download/ComicRackCESetup.exe" alt="Latest Release (EXE)">
-  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?label=latest release (installer)&logo=github" /></a> 
+<a href="https://github.com/Nadiar/ComicRackCE/releases/download/nightly/ComicRackCE_nightly.zip" alt="Nightly (ZIP)">
+  <img src="https://img.shields.io/github/v/release/Nadiar/ComicRackCE?include_prereleases&logo=GitHub&label=pre-release%20(zip)" /></a>
+<a href="https://github.com/Nadiar/ComicRackCE/releases/download/nightly/ComicRackCESetup_nightly.exe" alt="Nightly (EXE)">
+  <img src="https://img.shields.io/github/v/release/Nadiar/ComicRackCE?include_prereleases&logo=GitHub&label=pre-release%20(installer)" /></a>
 <br>
-  <img src="https://img.shields.io/github/release-date/maforget/ComicRackCE?logo=github&label=Released" /></a>    
+  <img src="https://img.shields.io/github/release-date-pre/Nadiar/ComicRackCE?logo=github&label=Released" /></a>   
 </p>
--->
 
+### Classic .NET 4.5 (Maforget)
 <p>
 <a href="https://github.com/maforget/ComicRackCE/releases/download/nightly/ComicRackCE_nightly.zip" alt="Nightly (ZIP)">
   <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?include_prereleases&logo=GitHub&label=pre-release%20(zip)" /></a>
 <a href="https://github.com/maforget/ComicRackCE/releases/download/nightly/ComicRackCESetup_nightly.exe" alt="Nightly (EXE)">
   <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?include_prereleases&logo=GitHub&label=pre-release%20(installer)" /></a>
 <br>
-  <img src="https://img.shields.io/github/release-date-pre/maforget/ComicRackCE?logo=github&display_date=created_at&label=Released" /></a>   
+  <img src="https://img.shields.io/github/release-date/maforget/ComicRackCE?logo=github&label=Released" /></a>
 </p>
 
 [![ComicRack Community Edition](https://github.com/maforget/ComicRackCE/assets/11904426/4748925c-662f-4ccd-bfb7-62ec46ae881e)](#readme)
@@ -29,11 +29,38 @@
 
 ---
 
+## About this Fork (Modernization Projects)
+This isn't just a decompilation; it's a modernization effort to bring ComicRack into the 2020s.
+
+### .NET 9 Upgrade
+We have moved the entire codebase from the legacy **.NET Framework 4.5** to modern **.NET 9**. This brings massive performance improvements, better memory management, and cross-platform compatibility potential.
+
+### Python Engine Overhaul
+The original ComicRack used **IronPython**, which is now effectively dead/legacy. We have gutted it and replaced it with **Python.NET (pythonnet)**. 
+- **Real Python 3.12**: Scripts now run on a real, embedded CPython 3.12 engine.
+- **`clr_bridge.py`**: A custom bridge we built to handle type conversions between .NET and Python seamlessly.
+- **Embedded Downloader**: The build system now automatically fetches and embeds a standalone Python environment, zero user configuration required.
+
+### Python Script Repair Strategy
+To modernize the 10-year-old script ecosystem for Python 3.x, we employed a multi-stage repair process:
+1. **Bridge Architecture**: Built `clr_bridge.py` to transparently handle common marshalling issues between Python.NET and the legacy IronPython environment.
+2. **Automated Conversion**: Utilized a basic python `2to3` runner to handle syntactic updates (print statements, exception syntax).
+3. **AI-Assisted Linting**: Ran static analysis and utilized **Claude Code Opus 4.5** to intelligently resolve linting issues (successfully repairing all scripts except the complex `Autonumber.py`).
+4. **Trace-Driven Debugging**: Built the **Modern Script Console** with real-time Trace Functionality to capture execution flow.
+5. **Manual Adjustments**: Used the generated trace data to identify and fix obscure runtime failures in plugins that automated tools missed.
+
+### Developer Tools
+Debugging scripts in the old version was a nightmare. We've added:
+- **Modern Script Console**: A non-blocking, async console that doesn't freeze the UI.
+- **Trace Reports**: A built-in tracing system that generates detailed logs (`trace_report_*.log`) of every function call, line execution, and exception in your scripts.
+
+---
+
 This project aims to revive the legendary Comic Manager, ComicRack, which hasn't been updated in 10 years. Despite attempts to contact the original author, Markus Eisenstöck (cYo), the app was removed from stores, and users had to rely on cracked versions. If Markus reappears and requests this project to be taken down, I will comply.
 
 To support the community, I am releasing the decompiled version as a Community Edition. Although commercial use can't be prevented, I discourage rebranding and selling it. Please keep expectations realistic; major overhauls, like rewriting the entire program or UI, aren't on the horizon. As a hobbyist programmer, I can handle most code but with time. If you're eager for a new feature, I encourage you to consider implementing it yourself—it's what makes this the Community Edition.
 
-New Features are listed [here](https://github.com/maforget/ComicRackCE/wiki/New-Features). The complete changelog is [here](https://raw.githubusercontent.com/maforget/ComicRackCE/master/ComicRack/Output/Changes.txt).
+New Features are listed [here](https://github.com/maforget/ComicRackCE/wiki/New-Features). The complete changelog is [here](https://raw.githubusercontent.com/Nadiar/ComicRackCE/dotnet9/ComicRack/Output/Changes.txt). Fork-specific changes are in [Fork.txt](https://raw.githubusercontent.com/Nadiar/ComicRackCE/dotnet9/ComicRack/Output/Fork.txt).
 
 ## Community Collaboration
 To collaborate, open an Issue on the tracker or use GitHub discussions. Start with small, focused Pull Requests, avoiding large, vague commits. ChatGPT can help with small code snippets but not with complete rewrites. Use Visual Studio 2022 Community Edition for development, as it's more suitable than VS Code.
@@ -41,8 +68,11 @@ To collaborate, open an Issue on the tracker or use GitHub discussions. Start wi
 To help translate the application, check out the [localization wiki page](https://github.com/maforget/ComicRackCE/wiki/Localization).
 
 ## Installation
-To install, download the [nightly installer](https://github.com/maforget/ComicRackCE/releases/download/nightly/ComicRackCESetup_nightly.exe "Nightly Release"), double-click it, and follow the instructions. <br />
-You can also install it via winget `winget install ComicRackCE`.
+To install, download the [nightly installer](https://github.com/Nadiar/ComicRackCE/releases/download/nightly/ComicRackCESetup_nightly.exe "Nightly Release"), double-click it, and follow the instructions. <br />
+For the classic .NET 4.5 version, use `winget install ComicRackCE` or download from [maforget's releases](https://github.com/maforget/ComicRackCE/releases).
+
+> [!IMPORTANT]
+> This fork requires the **.NET 9.0 Desktop Runtime**. The installer will download and install it automatically if not present. If using the ZIP file, download it from [dotnet.microsoft.com](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
 
 > [!CAUTION]
 > Because of a change with Microsoft Visual C++ Redistributable 2015-2022, if you use the HEIF/AVIF files you will need to have at a minimum version `14.40.33810.0` installed. This should be done automatically by the installer, but if you are using the ZIP file, please be advise that you will need to update it manually. More info [here](https://github.com/maforget/ComicRackCE/issues/106).
@@ -54,15 +84,15 @@ You can also install it via winget `winget install ComicRackCE`.
 >* Users have reported false positives from Windows Defender and not every version can be submitted for removal.
 >    * Builds provided are automatically compiled by GitHub servers, ensuring that the downloaded file matches the code in this repository.
 
->[!WARNING]
->* This version introduces new smart list fields not found in classic ComicRack. Do not open a database that utilizes these fields in an older version, as it will reset your database.
->* Always maintain backups.
+> [!WARNING]
+> * This version introduces new smart list fields not found in classic ComicRack. Do not open a database that utilizes these fields in an older version, as it will reset your database.
+> * Always maintain backups.
 
->[!TIP]
->* Before installing the Community Edition, uninstalling the original ComicRack is suggested to avoid duplicates in the Open With menu.
->* There is now a built-in [Backup Manager](https://github.com/maforget/ComicRackCE/wiki/Backup-Manager) to help you backup your database.
->* Use the News window within the application to stay informed about the latest builds.
->* Check the [ComicRackCE wiki](https://github.com/maforget/ComicRackCE/wiki) for additional tips and information.
+> [!TIP]
+> * Before installing the Community Edition, uninstalling the original ComicRack is suggested to avoid duplicates in the Open With menu.
+> * There is now a built-in [Backup Manager](https://github.com/maforget/ComicRackCE/wiki/Backup-Manager) to help you backup your database.
+> * Use the News window within the application to stay informed about the latest builds.
+> * Check the [ComicRackCE wiki](https://github.com/maforget/ComicRackCE/wiki) for additional tips and information.
 
 ### Upgrading from classic ComicRack
 
