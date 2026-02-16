@@ -5,7 +5,7 @@ name: Nightly
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "dotnet9" ]
     paths-ignore:
       - '**.md'
 
@@ -24,20 +24,16 @@ jobs:
       with:
         submodules: recursive
 
-    - name: setup-msbuild
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v2
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
 
     - name: Restore Packages
-      run: nuget restore ComicRack.sln
+      run: dotnet restore ComicRack.sln
 
     - name: Build solution
-      run: msbuild ComicRack\ComicRack.csproj -t:rebuild -property:Configuration=Release
-
-    - name: Package Files
-      run: powershell Compress-Archive -Path 'ComicRack\bin\Release\net48\*' -DestinationPath 'ComicRackCE_nightly.zip' -Force
+      run: dotnet build ComicRack\ComicRack.csproj -c Release --no-restore
 
     - name: Get short sha
       id: vars
@@ -46,10 +42,13 @@ jobs:
         echo "sha_short=$sha_short" >> $env:GITHUB_OUTPUT
         echo "Short SHA is $sha_short"
 
+    - name: Package Files
+      run: powershell Compress-Archive -Path 'ComicRack\bin\Release\net9.0-windows\*' -DestinationPath 'ComicRackCE_nightly.zip' -Force
+
     - name: Download VC++ Redistributable (x64)
       run: |
-        mkdir ComicRack\bin\Release\net48\_CommonRedist
-        curl -L -o ComicRack\bin\Release\net48\_CommonRedist\vc_redist.x64.exe https://aka.ms/vs/17/release/vc_redist.x64.exe
+        mkdir ComicRack\bin\Release\net9.0-windows\_CommonRedist
+        curl -L -o ComicRack\bin\Release\net9.0-windows\_CommonRedist\vc_redist.x64.exe https://aka.ms/vs/17/release/vc_redist.x64.exe
 
     - name: Compile installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.4

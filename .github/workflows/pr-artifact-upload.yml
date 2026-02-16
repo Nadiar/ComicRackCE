@@ -22,22 +22,21 @@ jobs:
       with:
         submodules: recursive
 
-    - name: setup-msbuild
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v2
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
 
     - name: Restore Packages
-      run: nuget restore ComicRack.sln
+      run: dotnet restore ComicRack.sln
 
     - name: Build solution
-      run: msbuild ComicRack\ComicRack.csproj -t:rebuild -property:Configuration=Release
+      run: dotnet build ComicRack\ComicRack.csproj -c Release --no-restore
 
     - name: Upload artifacts
       id: upload
       uses: actions/upload-artifact@v4
       with:
         name: "ComicRackCE_PR"
-        path: "ComicRack/bin/Release/net48/*"
+        path: "ComicRack/bin/Release/net9.0-windows/*"
         if-no-files-found: error
