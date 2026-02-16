@@ -10,6 +10,9 @@
 *.userosscache
 *.sln.docstates
 
+# Diagnostic traces
+*.nettrace
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -240,6 +243,7 @@ Generated_Code/
 # because we have git ;-)
 _UpgradeReport_Files/
 Backup*/
+!ComicRack.Engine/Backup/
 UpgradeLog*.XML
 UpgradeLog*.htm
 ServiceFabricBackup/
@@ -344,3 +348,40 @@ healthchecksdb
 */Tags.txt
 /ComicRack/Properties/launchSettings.json
 /ComicRackCESetup*.exe
+
+# Ignore all dot-folders (hidden directories)
+.*/
+
+# But explicitly track GitHub-related dot-folders
+!.github/
+!.gitignore
+!.gitattributes
+
+# Python runtime binaries (not source)
+ComicRack/Output/Python/*.pyd
+ComicRack/Output/Python/*.dll
+ComicRack/Output/Python/*.exe
+ComicRack/Output/Python/*.zip
+ComicRack/Output/Python/*.cat
+
+# Backup files
+**/*.bak
+
+# WIP files
+*.wip
+
+# Build/debug artifacts
+build_log.txt
+csproj_dump.txt
+
+# Temp directories
+temp_scraper/
+
+# VS Code workspace files
+*.code-workspace
+
+# Compiled script output DLLs (build artifacts, not source)
+ComicRack/Output/Scripts/*.dll
+
+# ctags
+.github/ctags/
