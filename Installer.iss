@@ -25,7 +25,7 @@ DefaultDirName={autopf}\{#MyAppName}
 ChangesAssociations=yes
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-LicenseFile=ComicRack\bin\Release\net48\License.txt
+LicenseFile=ComicRack\bin\Release\net9.0-windows\License.txt
 PrivilegesRequired=admin
 OutputDir=.
 OutputBaseFilename={#MyAppSetupFile}
@@ -67,22 +67,23 @@ Name: "additional";Description: "Additional images, icons and backgrounds"; Type
 
 [Files]
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "ComicRack\bin\Release\net48\*.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: app
-Source: "ComicRack\bin\Release\net48\Changes.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: app
-Source: "ComicRack\bin\Release\net48\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion; Components: app
-Source: "ComicRack\bin\Release\net48\{#MyAppExeName}.config"; DestDir: "{app}"; Flags: ignoreversion; Components: app
-Source: "ComicRack\bin\Release\net48\ComicRack.ini"; DestDir: "{app}"; Flags: ignoreversion; Components: app
-Source: "ComicRack\bin\Release\net48\DefaultLists.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: app
-Source: "ComicRack\bin\Release\net48\License.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: app
-Source: "ComicRack\bin\Release\net48\NewsTemplate.html"; DestDir: "{app}"; Flags: ignoreversion; Components: app
-Source: "ComicRack\bin\Release\net48\ReadMe.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme; Components: app
-Source: "ComicRack\bin\Release\net48\Help\*"; DestDir: "{app}\Help"; Flags: ignoreversion; Components: app
-Source: "ComicRack\bin\Release\net48\Languages\*"; DestDir: "{app}\Languages"; Flags: ignoreversion; Components: languages
-Source: "ComicRack\bin\Release\net48\Resources\*"; DestDir: "{app}\Resources"; Flags: ignoreversion; Components: app
-Source: "ComicRack\bin\Release\net48\Resources\Icons\*"; DestDir: "{app}\Resources\Icons"; Flags: ignoreversion; Components: additional
-Source: "ComicRack\bin\Release\net48\Resources\Textures\*"; DestDir: "{app}\Resources\Textures"; Flags: ignoreversion recursesubdirs; Components: additional
-Source: "ComicRack\bin\Release\net48\Scripts\*"; DestDir: "{app}\Scripts"; Flags: ignoreversion; Components: app
-Source: "ComicRack\bin\Release\net48\_CommonRedist\VC_redist.x64.exe"; DestDir: {tmp}; Flags: dontcopy
+Source: "ComicRack\bin\Release\net9.0-windows\*.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\Changes.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\ComicRack.runtimeconfig.json"; DestDir: "{app}"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\ComicRack.deps.json"; DestDir: "{app}"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\ComicRack.ini"; DestDir: "{app}"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\DefaultLists.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\License.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\NewsTemplate.html"; DestDir: "{app}"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\ReadMe.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\Help\*"; DestDir: "{app}\Help"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\Languages\*"; DestDir: "{app}\Languages"; Flags: ignoreversion; Components: languages
+Source: "ComicRack\bin\Release\net9.0-windows\Resources\*"; DestDir: "{app}\Resources"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\Resources\Icons\*"; DestDir: "{app}\Resources\Icons"; Flags: ignoreversion; Components: additional
+Source: "ComicRack\bin\Release\net9.0-windows\Resources\Textures\*"; DestDir: "{app}\Resources\Textures"; Flags: ignoreversion recursesubdirs; Components: additional
+Source: "ComicRack\bin\Release\net9.0-windows\Scripts\*"; DestDir: "{app}\Scripts"; Flags: ignoreversion; Components: app
+Source: "ComicRack\bin\Release\net9.0-windows\_CommonRedist\VC_redist.x64.exe"; DestDir: {tmp}; Flags: dontcopy
 
 [Registry]
 ; Comics
@@ -148,18 +149,16 @@ Filename: "{tmp}\VC_redist.x64.exe"; Parameters: "/install /passive /norestart";
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Code]
-// Set the minimum .NET Framework version release code. 528040 = .NET Framework 4.8
+// Set the minimum .NET runtime version. Requires .NET 9.0 Desktop Runtime
 const
-  NETFrameworkLabel = '.NET Framework 4.8';
+  NETRuntimeLabel = '.NET 9.0 Desktop Runtime';
 const
-  NETFrameworkMinimum = 528040;
+  NETRuntimeMinVersion = '9.0.0';
 const
-  NETFrameworkDownload = 'https://go.microsoft.com/fwlink/?linkid=2088631';
+  NETRuntimeDownload = 'https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-9.0.0-windows-x64-installer';
 const
-  NETFrameworkFilename = 'ndp48-x86-x64-allos-enu.exe';
+  NETRuntimeFilename = 'windowsdesktop-runtime-9.0.0-win-x64.exe';
 
-var
-  NETFrameworkVersion: Cardinal;
 var
   DownloadPage: TDownloadWizardPage;
 var
@@ -180,11 +179,11 @@ begin
   DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
 end;
 
-// Download and run the .NET Framework setup
-function DownloadNETFramework(): Boolean;
+// Download and run the .NET Runtime setup
+function DownloadNETRuntime(): Boolean;
 begin
   DownloadPage.Clear;
-  DownloadPage.Add(NETFrameworkDownload, NETFrameworkFilename, '');
+  DownloadPage.Add(NETRuntimeDownload, NETRuntimeFilename, '');
   DownloadPage.Show;
   try
     try
@@ -197,11 +196,11 @@ begin
         Log(AddPeriod(GetExceptionMessage))
       Result := False;
     end;
-    if Exec(ExpandConstant('{tmp}\'+NETFrameworkFilename), '', '', SW_SHOW, ewWaitUntilTerminated, ResultCode) then begin
+    if Exec(ExpandConstant('{tmp}\'+NETRuntimeFilename), '/install /passive /norestart', '', SW_SHOW, ewWaitUntilTerminated, ResultCode) then begin
       Result := True;
     end
     else begin
-      Log(Format('%s installation failed: [Result Code: %d] {tmp}\%s', [NETFrameworkLabel, ResultCode, NETFrameworkFilename]));
+      Log(Format('%s installation failed: [Result Code: %d] {tmp}\%s', [NETRuntimeLabel, ResultCode, NETRuntimeFilename]));
       Result := False;
     end;
   finally
@@ -232,20 +231,32 @@ begin
   end;
 end;
 
+// Check if .NET 9.0 Desktop Runtime is installed by looking for the runtime directory
+function IsDotNet9Installed(): Boolean;
+var
+  RuntimePath: String;
+begin
+  RuntimePath := ExpandConstant('{pf}\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.0');
+  Result := DirExists(RuntimePath);
+  if not Result then begin
+    // Also check for any 9.0.x version
+    RuntimePath := ExpandConstant('{pf}\dotnet\shared\Microsoft.WindowsDesktop.App');
+    if DirExists(RuntimePath) then begin
+      // Check via dotnet --list-runtimes would be ideal but directory check is sufficient
+      Log('Checking for .NET 9.0 Desktop Runtime in: ' + RuntimePath);
+    end;
+  end;
+end;
+
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
   if CurPageID = wpReady then begin
-    if RegQueryDWordValue(HKEY_LOCAL_MACHINE, 'Software\Microsoft\NET Framework Setup\NDP\v4\Full', 'Release', NETFrameworkVersion) then begin
-      if (NETFrameworkVersion < NETFrameworkMinimum) then begin
-        Log(Format('.NET Framework version (%s) is insufficient. Downloading %s.', [IntToStr(NETFrameworkVersion), NETFrameworkLabel]));
-        Result := DownloadNETFramework()
-      end else begin
-        Log(Format('.NET Framework version (%s) is sufficient.', [IntToStr(NETFrameworkVersion)]));
-        Result := True;
-      end;
+    if IsDotNet9Installed() then begin
+      Log('.NET 9.0 Desktop Runtime is installed.');
+      Result := True;
     end else begin
-      Log(Format('.NET Framework is not installed. Downloading.', [IntToStr(NETFrameworkVersion)]));
-      Result := DownloadNETFramework()
+      Log('.NET 9.0 Desktop Runtime is not installed. Downloading.');
+      Result := DownloadNETRuntime()
     end;
   end else
     Result := True;
