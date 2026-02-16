@@ -244,8 +244,16 @@ namespace cYo.Common.Threading
 		{
 			if (thread != null && thread.IsAlive && !thread.Join(timeOut))
 			{
-				thread.Abort();
-				thread.Join();
+                // CoreWCF / .NET 9 Migration: Thread.Abort is not supported.
+                // Attempting to interrupt the thread instead. 
+                // If the thread is in a WaitSleepJoin state, this will throw ThreadInterruptedException in that thread.
+				try 
+                {
+                    thread.Interrupt(); 
+                }
+                catch (Exception) { /* Ignore if thread is already gone or cannot be interrupted */ }
+                
+				thread.Join(100); // Give it a moment to react
 			}
 		}
 

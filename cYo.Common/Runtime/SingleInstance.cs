@@ -1,18 +1,20 @@
-#define TRACE
 using System;
 using System.Diagnostics;
-using System.ServiceModel;
+using System.IO;
+using System.IO.Pipes;
+using System.Security.AccessControl;
+using System.Security.Principal;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace cYo.Common.Runtime
 {
-	[ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, IncludeExceptionDetailInFaults = true)]
-	public class SingleInstance : ISingleInstance
+	public class SingleInstance : ISingleInstance, IDisposable
 	{
 		private readonly string name;
-
 		private readonly Action<string[]> StartNew;
-
 		private readonly Action<string[]> StartLast;
+		private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
 		public SingleInstance(string name, Action<string[]> startNew, Action<string[]> startLast)
 		{
@@ -23,62 +25,98 @@ namespace cYo.Common.Runtime
 
 		public void Run(string[] args)
 		{
-			string arg = name;
-			string text = $"net.pipe://localhost/{arg}";
-			ServiceHost serviceHost = null;
+			// Try to connect to existing instance
+			if (TryNotifyExistingInstance(args))
+			{
+				return;
+			}
+
+			// No existing instance found, start new one
+			StartServer();
+
 			try
 			{
-				serviceHost = new ServiceHost(this, new Uri(text));
-				serviceHost.AddServiceEndpoint(typeof(ISingleInstance), new NetNamedPipeBinding(), "SI");
-				serviceHost.Open();
-				try
+				StartNew(args);
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine("Failed to start Program: " + ex.Message);
+			}
+		}
+
+		private bool TryNotifyExistingInstance(string[] args)
+		{
+			try
+			{
+				using (var client = new NamedPipeClientStream(".", name, PipeDirection.Out))
 				{
-					StartNew(args);
+					client.Connect(500); // Wait 500ms for connection
+					using (var writer = new StreamWriter(client))
+					{
+						writer.WriteLine(string.Join("\n", args)); // Simple serialization: Join with newline
+					}
 				}
-				catch (Exception ex)
-				{
-					Trace.WriteLine("Failed to start Program: " + ex.Message);
-				}
-				return;
+				return true;
+			}
+			catch (TimeoutException)
+			{
+				return false; // No server listening
 			}
 			catch (Exception)
 			{
+				return false;
 			}
-			finally
+		}
+
+		private void StartServer()
+		{
+			Task.Run(async () =>
 			{
-				try
+				while (!cancellationTokenSource.IsCancellationRequested)
 				{
-					serviceHost.Close();
+					try
+					{
+						using (var server = new NamedPipeServerStream(name, PipeDirection.In))
+						{
+                           await server.WaitForConnectionAsync(cancellationTokenSource.Token);
+						   
+                           using (var reader = new StreamReader(server))
+                           {
+                               string content = await reader.ReadToEndAsync();
+                               var args = content.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                               InvokeLast(args);
+                           }
+						}
+					}
+					catch (OperationCanceledException)
+					{
+						break;
+					}
+					catch (Exception ex)
+					{
+						Trace.WriteLine("SingleInstance server error: " + ex);
+					}
 				}
-				catch
-				{
-				}
-			}
-			try
-			{
-				ChannelFactory<ISingleInstance> channelFactory = new ChannelFactory<ISingleInstance>(new NetNamedPipeBinding(), text + "/SI");
-				ISingleInstance singleInstance = channelFactory.CreateChannel();
-				singleInstance.InvokeLast(args);
-			}
-			catch
-			{
-			}
+			});
 		}
 
 		public void InvokeLast(string[] args)
 		{
-			if (StartLast != null)
-			{
-				StartLast(args);
-			}
+			// Marshal to UI thread if necessary?
+            // The original implementation called StartLast directly from WCF thread.
+            // Assuming StartLast handles marshalling if needed (usually it invokes on form).
+			StartLast?.Invoke(args);
 		}
 
 		public void InvokeNew(string[] args)
 		{
-			if (StartNew != null)
-			{
-				StartNew(args);
-			}
+			StartNew?.Invoke(args);
+		}
+
+		public void Dispose()
+		{
+			cancellationTokenSource.Cancel();
+			cancellationTokenSource.Dispose();
 		}
 	}
 }
