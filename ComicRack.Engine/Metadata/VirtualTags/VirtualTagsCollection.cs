@@ -42,7 +42,10 @@ namespace cYo.Projects.ComicRack.Engine
 
         public IVirtualTag GetValue(int i)
         {
-            if (Tags.TryGetValue(i, out var tag))
+            // Use 'this' instead of static 'Tags' to avoid Lazy<T> recursion
+            // Tags accessor triggers instance.Value which would cause
+            // "ValueFactory attempted to access Value" error if called during initialization
+            if (this.TryGetValue(i, out var tag))
                 return tag;
 
             return new VirtualTag();

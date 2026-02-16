@@ -32,7 +32,7 @@ namespace cYo.Projects.ComicRack.Engine.IO.Provider.Readers
 				using (FileStream fileStream = File.OpenRead(source))
 				{
 					byte[] array = new byte[10];
-					fileStream.Read(array, 0, array.Length);
+					fileStream.ReadExactly(array, 0, array.Length);
 					return DjVuImage.IsDjvu(array);
 				}
 			}
@@ -46,7 +46,7 @@ namespace cYo.Projects.ComicRack.Engine.IO.Provider.Readers
 		{
 			using (FileStream inputStream = File.OpenRead(base.Source))
 			{
-				return Base32.ToBase32String(new SHA1Managed().ComputeHash(inputStream));
+				return Base32.ToBase32String(SHA1.Create().ComputeHash(inputStream));
 			}
 		}
 

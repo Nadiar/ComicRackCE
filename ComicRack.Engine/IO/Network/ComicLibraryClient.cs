@@ -21,7 +21,7 @@ namespace cYo.Projects.ComicRack.Engine.IO.Network
 		{
 			get
 			{
-				IServiceChannel serviceChannel = remoteLibrary as IServiceChannel;
+				System.ServiceModel.IClientChannel serviceChannel = remoteLibrary as System.ServiceModel.IClientChannel;
 				if (serviceChannel.State == CommunicationState.Faulted || serviceChannel.State == CommunicationState.Closed)
 				{
 					Connect();
@@ -168,8 +168,8 @@ namespace cYo.Projects.ComicRack.Engine.IO.Network
 		private static IRemoteComicLibrary GetComicLibraryService(string address, string password)
 		{
 			string uriString = string.Format("net.tcp://{0}/{1}", address, ComicLibraryServer.LibraryPoint);
-			EndpointAddress remoteAddress = new EndpointAddress(new Uri(uriString), EndpointIdentity.CreateDnsIdentity("ComicRack"), (AddressHeaderCollection)null);
-			ChannelFactory<IRemoteComicLibrary> channelFactory = new ChannelFactory<IRemoteComicLibrary>(ComicLibraryServer.CreateChannel(secure: true), remoteAddress);
+			EndpointAddress remoteAddress = new EndpointAddress(new Uri(uriString), new DnsEndpointIdentity("ComicRack"));
+			ChannelFactory<IRemoteComicLibrary> channelFactory = new ChannelFactory<IRemoteComicLibrary>(ComicLibraryServer.CreateClientChannel(secure: true), remoteAddress);
 			channelFactory.Credentials.UserName.UserName = "ComicRack";
 			channelFactory.Credentials.UserName.Password = password;
 			channelFactory.Credentials.ClientCertificate.Certificate = ComicLibraryServer.Certificate;// New Cert (sha256)
@@ -182,7 +182,8 @@ namespace cYo.Projects.ComicRack.Engine.IO.Network
 		private static IRemoteServerInfo GetServerInfoService(string serviceAddress)
 		{
 			string remoteAddress = string.Format("net.tcp://{0}/{1}", serviceAddress, ComicLibraryServer.InfoPoint);
-			ChannelFactory<IRemoteServerInfo> channelFactory = new ChannelFactory<IRemoteServerInfo>(ComicLibraryServer.CreateChannel(secure: false), remoteAddress);
+			EndpointAddress endpointAddress = new EndpointAddress(remoteAddress);
+			ChannelFactory<IRemoteServerInfo> channelFactory = new ChannelFactory<IRemoteServerInfo>(ComicLibraryServer.CreateClientChannel(secure: false), endpointAddress);
 			IRemoteServerInfo remoteServerInfo = channelFactory.CreateChannel();
 			((IContextChannel)remoteServerInfo).OperationTimeout = TimeSpan.FromSeconds(EngineConfiguration.Default.OperationTimeout);
 			return remoteServerInfo;

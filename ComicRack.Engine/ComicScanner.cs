@@ -94,8 +94,10 @@ namespace cYo.Projects.ComicRack.Engine
 				abortScanning = true;
 				if (!scanningThread.Join(10000))
 				{
-					scanningThread.Abort();
-					scanningThread.Join();
+                    // CoreWCF / .NET 9 Migration: Thread.Abort is not supported.
+                    // We relied on abortScanning flag. If thread is stuck, it will leak.
+					// scanningThread.Abort();
+					// scanningThread.Join();
 				}
 			}
 			if (clearQueue)
@@ -183,8 +185,10 @@ namespace cYo.Projects.ComicRack.Engine
 					factory.Storage.RemoveRange(list);
 				}
 			}
-			catch (ThreadAbortException)
+			catch (Exception)
 			{
+                // CoreWCF / .NET 9 Migration: ThreadAbortException catch removed / replaced with generic catch
+                // as we no longer throw it.
 			}
 			finally
 			{
