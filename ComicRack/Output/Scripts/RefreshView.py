@@ -1,8 +1,5 @@
-import clr
-
-clr.AddReferenceByPartialName('ComicRack.Engine')
-clr.AddReferenceByPartialName('cYo.Common.Windows')
-
+import clr_bridge
+from clr_bridge import ComicRack
 from cYo.Common.Windows.Forms import FormUtility
 from cYo.Projects.ComicRack.Engine import IRefreshDisplay
 	

@@ -4,7 +4,7 @@ using cYo.Common.Collections;
 
 namespace cYo.Projects.ComicRack.Plugins
 {
-	[XmlInclude(typeof(PythonCommand))]
+	// [XmlInclude(typeof(PythonCommand))] // Removed for migration
 	public class CommandCollection : SmartList<Command>
 	{
 		public Command this[string key] => this.FirstOrDefault((Command cmd) => cmd.Key == key);

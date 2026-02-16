@@ -6,16 +6,19 @@
 # (C)'2007 cYo Soft
 ##########################################################################
 
-import clr
-clr.AddReferenceByPartialName("System.Windows.Forms")
-clr.AddReferenceByPartialName("System.Drawing")
+import clr_bridge
+from clr_bridge import ComicRack
 from System.Windows.Forms import *
 from System.Drawing import *
+
+
+import System
 
 def GetStart(start):
 
 	try:
-		result = float(start)
+		val_str = str(start) if start is not None else "1"
+		result = System.Decimal.Parse(val_str)
 	except:
 		result = 1
 	return result
@@ -47,7 +50,8 @@ def RenumberBooks(books):
 	nudStart.Size = Size(65, 20)
 	nudStart.TabIndex = 1
 	nudStart.TextAlign = HorizontalAlignment.Right
-	nudStart.Maximum = 100000000
+	nudStart.Maximum = System.Convert.ToDecimal("100000000")
+	nudStart.DecimalPlaces = 0
 	f.Controls.Add (nudStart)
 
 	# Second numeric up down
@@ -56,7 +60,8 @@ def RenumberBooks(books):
 	nudEnd.Size = Size(65, 20)
 	nudEnd.TabIndex = 3
 	nudEnd.TextAlign = HorizontalAlignment.Right
-	nudEnd.Maximum = 100000000
+	nudEnd.Maximum = System.Convert.ToDecimal("100000000")
+	nudEnd.DecimalPlaces = 0
 	f.Controls.Add (nudEnd)
 
 	#Set Total checkbox
@@ -114,8 +119,8 @@ def RenumberBooks(books):
 	#Select the proper values
 	start = GetStart(books[0].ShadowNumber)
 	cbSelection.SelectedIndex = 0
-	nudStart.Value = int(start)
-	nudEnd.Value = int(start) + books.Length -1
+	nudStart.Value = System.Decimal.Parse(str(start))
+	nudEnd.Value = start + System.Convert.ToDecimal(books.Length - 1)
 	
 	f.AutoScaleDimensions = SizeF(6, 13)
 	f.AutoScaleMode = AutoScaleMode.Font

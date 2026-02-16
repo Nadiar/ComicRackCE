@@ -8,12 +8,11 @@
 #
 ##########################################################################
 
-import clr
-clr.AddReferenceByPartialName("System.Windows.Forms")
+import clr_bridge
+from clr_bridge import ComicRack
 from System.Windows.Forms import *
-
 import sys
-sys.setdefaultencoding("utf8")
+
 
 #
 # Simple SaveFileDialog
@@ -41,7 +40,7 @@ def SaveCSVList(books):
 		return
 	f=open(name, "w")
 	for book in books:
-		print book.ShadowSeries
+		print(book.ShadowSeries)
 		f.write (book.ShadowSeries + ";")
 		f.write (book.ShadowTitle + ";")
 		f.write (book.ShadowNumber + ";")

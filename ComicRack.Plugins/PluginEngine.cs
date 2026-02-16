@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -178,6 +179,7 @@ namespace cYo.Projects.ComicRack.Plugins
 		{
 			List<Command> list = new List<Command>();
 			string[] hooks = ValidHooks.Keys.ToArray();
+			LogManager.Debug("System", $"Searching for plugins in: {path}");
 			foreach (string file in FileUtility.GetFiles(path, SearchOption.AllDirectories))
 			{
 				foreach (Command cmd in initializers.SelectMany((PluginInitializer si) => si.GetCommands(file)))
@@ -188,6 +190,8 @@ namespace cYo.Projects.ComicRack.Plugins
 						{
 							continue;
 						}
+
+						LogManager.Debug("System", $"Found plugin: {cmd.Name} ({cmd.Hook})");
 						if (cmd.Hook == ScriptTypeConfig)
 						{
 							list.Add(cmd);
@@ -207,8 +211,9 @@ namespace cYo.Projects.ComicRack.Plugins
 							continue;
 						}
 					}
-					catch
+					catch (Exception ex)
 					{
+						LogManager.Error("System", $"Error initializing plugin from {file}: {ex.Message}");
 					}
 				}
 				foreach (Command cfg in list)
@@ -220,6 +225,11 @@ namespace cYo.Projects.ComicRack.Plugins
 					}
 				}
 			}
+		}
+
+		public void Reset()
+		{
+			commands.Clear();
 		}
 
 		public void Invoke(string hook, object[] data)
