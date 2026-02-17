@@ -206,8 +206,13 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
 			this.btRemovePackage = new System.Windows.Forms.Button();
 			this.btInstallPackage = new System.Windows.Forms.Button();
 			this.lvPackages = new System.Windows.Forms.ListView();
+			this.btInstallGitHub = new System.Windows.Forms.Button();
+			this.btRefreshUpdates = new System.Windows.Forms.Button();
 			this.chPackageName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.chPackageVersion = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.chPackageEngine = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.chPackageAuthor = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.chPackageUpdate = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.chPackageDescription = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.packageImageList = new System.Windows.Forms.ImageList(this.components);
 			this.tabReader = new System.Windows.Forms.CheckBox();
@@ -2466,9 +2471,13 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
 			this.lvPackages.AllowDrop = true;
 			this.lvPackages.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+			this.lvPackages.CheckBoxes = true;
 			this.lvPackages.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.chPackageName,
+            this.chPackageVersion,
+            this.chPackageEngine,
             this.chPackageAuthor,
+            this.chPackageUpdate,
             this.chPackageDescription});
 			listViewGroup1.Header = "Installed";
 			listViewGroup1.Name = "packageGroupInstalled";
@@ -2495,21 +2504,59 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
 			this.lvPackages.DragDrop += new System.Windows.Forms.DragEventHandler(this.lvPackages_DragDrop);
 			this.lvPackages.DragOver += new System.Windows.Forms.DragEventHandler(this.lvPackages_DragOver);
 			this.lvPackages.DoubleClick += new System.EventHandler(this.lvPackages_DoubleClick);
+			this.lvPackages.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.lvPackages_ItemChecked);
+			// 
+			// btInstallGitHub
+			// 
+			this.btInstallGitHub.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.btInstallGitHub.Location = new System.Drawing.Point(16, 344);
+			this.btInstallGitHub.Name = "btInstallGitHub";
+			this.btInstallGitHub.Size = new System.Drawing.Size(100, 23);
+			this.btInstallGitHub.TabIndex = 4;
+			this.btInstallGitHub.Text = "GitHub...";
+			this.btInstallGitHub.UseVisualStyleBackColor = true;
+			this.btInstallGitHub.Click += new System.EventHandler(this.btInstallGitHub_Click);
+			// 
+			// btRefreshUpdates
+			// 
+			this.btRefreshUpdates.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.btRefreshUpdates.Location = new System.Drawing.Point(122, 344);
+			this.btRefreshUpdates.Name = "btRefreshUpdates";
+			this.btRefreshUpdates.Size = new System.Drawing.Size(120, 23);
+			this.btRefreshUpdates.TabIndex = 5;
+			this.btRefreshUpdates.Text = "Check Updates";
+			this.btRefreshUpdates.UseVisualStyleBackColor = true;
+			this.btRefreshUpdates.Click += new System.EventHandler(this.btRefreshUpdates_Click);
 			// 
 			// chPackageName
 			// 
 			this.chPackageName.Text = "Package";
-			this.chPackageName.Width = 130;
+			this.chPackageName.Width = 120;
+			// 
+			// chPackageVersion
+			// 
+			this.chPackageVersion.Text = "Version";
+			this.chPackageVersion.Width = 60;
+			// 
+			// chPackageEngine
+			// 
+			this.chPackageEngine.Text = "Engine";
+			this.chPackageEngine.Width = 80;
 			// 
 			// chPackageAuthor
 			// 
 			this.chPackageAuthor.Text = "Author";
-			this.chPackageAuthor.Width = 89;
+			this.chPackageAuthor.Width = 100;
+			// 
+			// chPackageUpdate
+			// 
+			this.chPackageUpdate.Text = "Update";
+			this.chPackageUpdate.Width = 60;
 			// 
 			// chPackageDescription
 			// 
 			this.chPackageDescription.Text = "Description";
-			this.chPackageDescription.Width = 217;
+			this.chPackageDescription.Width = 200;
 			// 
 			// packageImageList
 			// 
@@ -2842,11 +2889,15 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
 		private CollapsibleGroupBox grpPackages;
 		private Button btRemovePackage;
 		private Button btInstallPackage;
-		private ListView lvPackages;
-		private ImageList packageImageList;
-		private ColumnHeader chPackageName;
-		private ColumnHeader chPackageAuthor;
-		private ColumnHeader chPackageDescription;
+		private System.Windows.Forms.ListView lvPackages;
+		private System.Windows.Forms.ColumnHeader chPackageName;
+		private System.Windows.Forms.ColumnHeader chPackageVersion;
+		private System.Windows.Forms.ColumnHeader chPackageEngine;
+		private System.Windows.Forms.ColumnHeader chPackageAuthor;
+		private System.Windows.Forms.ColumnHeader chPackageUpdate;
+		private System.Windows.Forms.ColumnHeader chPackageDescription;
+		private System.Windows.Forms.Button btInstallGitHub;
+		private System.Windows.Forms.Button btRefreshUpdates;
 		private Button btAssociateExtensions;
 		private Label lblInternetCacheUsage;
 		private CheckBox chkEnableInternetCache;

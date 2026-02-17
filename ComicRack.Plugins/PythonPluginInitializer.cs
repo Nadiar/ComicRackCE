@@ -24,7 +24,16 @@ namespace cYo.Projects.ComicRack.Plugins
 					string[] lines = File.ReadAllLines(file);
 					string name = null, key = null, image = null, description = null, hook = null;
 					int pcount = 0;
-					bool enabled = true;
+
+                    string packageIni = Path.Combine(Path.GetDirectoryName(file), "package.ini");
+                    bool packageEnabled = true;
+                    if (File.Exists(packageIni))
+                    {
+                        string enabledValue = IniFile.GetValue(packageIni, "Enabled", "True");
+                        bool.TryParse(enabledValue, out packageEnabled);
+                    }
+
+					bool enabled = packageEnabled;
 
 					foreach (string line in lines)
 					{
@@ -70,7 +79,7 @@ namespace cYo.Projects.ComicRack.Plugins
 							// but usually it's one decorator per function.
 							name = key = image = description = hook = null;
 							pcount = 0;
-							enabled = true;
+							enabled = packageEnabled;
 						}
 					}
 				}

@@ -1224,11 +1224,12 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
                     listViewItem.ImageIndex = packageImageList.Images.Count - 1;
                 }
                 listViewItem.Tag = item;
-                if (!string.IsNullOrEmpty(item.Version))
-                {
-                    listViewItem.Text = listViewItem.Text + " V" + item.Version;
-                }
+                listViewItem.Checked = item.IsEnabled;
+                
+                listViewItem.SubItems.Add(item.Version);
+                listViewItem.SubItems.Add(item.Engine);
                 listViewItem.SubItems.Add(item.Author);
+                listViewItem.SubItems.Add(item.UpdateAvailable ? "Update!" : (item.LastUpdateChecked.HasValue ? "OK" : "-"));
                 listViewItem.SubItems.Add(item.Description);
                 switch (item.PackageType)
                 {
@@ -1242,6 +1243,52 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
                         listViewItem.Group = lvPackages.Groups["packageGroupRemove"];
                         break;
                 }
+            }
+        }
+
+        private async void btInstallGitHub_Click(object sender, EventArgs e)
+        {
+            using (ValueEditorDialog dialog = new ValueEditorDialog())
+            {
+                dialog.Text = "Install from GitHub";
+                if (dialog.ShowDialog(this) == DialogResult.OK && !string.IsNullOrEmpty(dialog.MatchValue))
+                {
+                    if (await Program.ScriptPackages.InstallFromGitHub(dialog.MatchValue))
+                    {
+                        RefreshPackageList();
+                    }
+                }
+            }
+        }
+
+        private async void btRefreshUpdates_Click(object sender, EventArgs e)
+        {
+            btRefreshUpdates.Enabled = false;
+            try
+            {
+                foreach (ListViewItem item in lvPackages.Items)
+                {
+                    PackageManager.Package package = item.Tag as PackageManager.Package;
+                    if (package != null && !string.IsNullOrEmpty(package.GitHubUrl))
+                    {
+                        await Program.ScriptPackages.CheckForUpdate(package);
+                    }
+                }
+                RefreshPackageList();
+            }
+            finally
+            {
+                btRefreshUpdates.Enabled = true;
+            }
+        }
+
+        private void lvPackages_ItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+            PackageManager.Package package = e.Item.Tag as PackageManager.Package;
+            if (package != null && package.IsEnabled != e.Item.Checked)
+            {
+                package.IsEnabled = e.Item.Checked;
+                package.SaveValues();
             }
         }
 

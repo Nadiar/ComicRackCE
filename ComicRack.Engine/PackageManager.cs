@@ -67,6 +67,36 @@ namespace cYo.Projects.ComicRack.Engine
 				private set;
 			}
 
+            public string GitHubUrl
+            {
+                get;
+                set;
+            }
+
+            public string Engine
+            {
+                get;
+                set;
+            }
+
+            public bool IsEnabled
+            {
+                get;
+                set;
+            }
+
+            public bool UpdateAvailable
+            {
+                get;
+                set;
+            }
+
+            public DateTime? LastUpdateChecked
+            {
+                get;
+                set;
+            }
+
 			public Image Image
 			{
 				get;
@@ -109,6 +139,16 @@ namespace cYo.Projects.ComicRack.Engine
 				Author = iniFile.GetValue("Author", string.Empty);
 				Version = iniFile.GetValue("Version", string.Empty);
 				HelpLink = iniFile.GetValue("HelpLink", string.Empty);
+                GitHubUrl = iniFile.GetValue("GitHubUrl", string.Empty);
+                Engine = iniFile.GetValue("Engine", "CPython3");
+                IsEnabled = iniFile.GetValue("Enabled", true);
+                
+                DateTime lastChecked;
+                if (DateTime.TryParse(iniFile.GetValue("LastUpdateChecked", string.Empty), out lastChecked))
+                {
+                    LastUpdateChecked = lastChecked;
+                }
+
 				KeepFiles = iniFile.GetValue("KeepFiles", string.Empty).Split(',').TrimStrings()
 					.RemoveEmpty()
 					.ToArray();
@@ -148,6 +188,19 @@ namespace cYo.Projects.ComicRack.Engine
 					}
 				}
 			}
+
+            public void SaveValues()
+            {
+                IniFile iniFile = new IniFile(Path.Combine(PackagePath, "package.ini"));
+                iniFile.SetValue("GitHubUrl", GitHubUrl);
+                iniFile.SetValue("Engine", Engine);
+                iniFile.SetValue("Enabled", IsEnabled);
+                if (LastUpdateChecked.HasValue)
+                {
+                    iniFile.SetValue("LastUpdateChecked", LastUpdateChecked.Value.ToString("o"));
+                }
+                iniFile.Save();
+            }
 
 			public static string GetName(string file)
 			{
@@ -455,5 +508,74 @@ namespace cYo.Projects.ComicRack.Engine
 		{
 			return Path.Combine(pending ? PendingPackagePath : PackagePath, package.Name);
 		}
+
+        public async System.Threading.Tasks.Task<bool> InstallFromGitHub(string githubUrl)
+        {
+            try
+            {
+                string repoPath = githubUrl.Replace("https://github.com/", "").Trim('/');
+                string zipUrl = $"https://github.com/{repoPath}/archive/refs/heads/master.zip";
+                
+                string tempZip = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".zip");
+                using (System.Net.WebClient client = new System.Net.WebClient())
+                {
+                    client.Headers.Add("User-Agent", "ComicRackCE-PackageManager");
+                    await client.DownloadFileTaskAsync(zipUrl, tempZip);
+                }
+
+                bool result = Install(tempZip);
+                
+                if (result)
+                {
+                    var newPackage = GetPackages().FirstOrDefault(p => p.PackageType == PackageType.PendingInstall);
+                    if (newPackage != null)
+                    {
+                        newPackage.GitHubUrl = githubUrl;
+                        newPackage.SaveValues();
+                    }
+                }
+
+                FileUtility.SafeDelete(tempZip);
+                return result;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async System.Threading.Tasks.Task<bool> CheckForUpdate(Package package)
+        {
+            if (string.IsNullOrEmpty(package.GitHubUrl)) return false;
+
+            try
+            {
+                string repoPath = package.GitHubUrl.Replace("https://github.com/", "").Trim('/');
+                string apiUrl = $"https://api.github.com/repos/{repoPath}/releases/latest";
+
+                using (System.Net.WebClient client = new System.Net.WebClient())
+                {
+                    client.Headers.Add("User-Agent", "ComicRackCE-PackageManager");
+                    string json = await client.DownloadStringTaskAsync(apiUrl);
+                    Newtonsoft.Json.Linq.JObject release = Newtonsoft.Json.Linq.JObject.Parse(json);
+                    
+                    string remoteVersion = release["tag_name"]?.ToString().TrimStart('v');
+                    if (!string.IsNullOrEmpty(remoteVersion) && remoteVersion != package.Version)
+                    {
+                        package.UpdateAvailable = true;
+                        package.LastUpdateChecked = DateTime.Now;
+                        package.SaveValues();
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            package.LastUpdateChecked = DateTime.Now;
+            package.SaveValues();
+            return false;
+        }
 	}
 }
