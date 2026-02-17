@@ -17,9 +17,15 @@
   <ItemGroup>
     <!-- Include PythonPluginInitializer for migration stub -->
     <!-- PythonPluginInitializer.cs compiled implicitly -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <ProjectReference Include="..\ComicRack.Engine\ComicRack.Engine.csproj" />
     <PackageReference Include="pythonnet" Version="3.0.5" />
     <ProjectReference Include="..\cYo.Common\cYo.Common.csproj" />
+    <ProjectReference Include="..\ComicRack.Plugins.LegacyHost\ComicRack.Plugins.LegacyHost.csproj">
+        <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+        <OutputItemType>Content</OutputItemType>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </ProjectReference>
 </ItemGroup>
 <ItemGroup>
     <Content Include="..\\..\\ComicRack\\Output\\Scripts\\**\\*.*">

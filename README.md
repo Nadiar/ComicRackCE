@@ -29,30 +29,28 @@
 
 ---
 
-## About this Fork (Modernization Projects)
-This isn't just a decompilation; it's a modernization effort to bring ComicRack into the 2020s.
+## About this Fork
+
+This fork migrates ComicRack CE from .NET Framework 4.5 to .NET 9, with a modernized Python scripting engine.
 
 ### .NET 9 Upgrade
-We have moved the entire codebase from the legacy **.NET Framework 4.5** to modern **.NET 9**. This brings massive performance improvements, better memory management, and cross-platform compatibility potential.
+The codebase has been ported from **.NET Framework 4.5** to **.NET 9**, bringing improved performance, better memory management, and long-term platform support.
 
-### Python Engine Overhaul
-The original ComicRack used **IronPython**, which is now effectively dead/legacy. We have gutted it and replaced it with **Python.NET (pythonnet)**. 
-- **Real Python 3.12**: Scripts now run on a real, embedded CPython 3.12 engine.
-- **`clr_bridge.py`**: A custom bridge we built to handle type conversions between .NET and Python seamlessly.
-- **Embedded Downloader**: The build system now automatically fetches and embeds a standalone Python environment, zero user configuration required.
+### Python Engine Migration
+The scripting engine has been migrated from **IronPython** to **Python.NET (pythonnet)** with an embedded **CPython 3.12** runtime.
+- **`clr_bridge.py`**: Handles type conversions between .NET and Python for compatibility with existing scripts.
+- **Embedded Runtime**: The build system automatically fetches and embeds a standalone Python environment - no user configuration required.
 
-### Python Script Repair Strategy
-To modernize the 10-year-old script ecosystem for Python 3.x, we employed a multi-stage repair process:
-1. **Bridge Architecture**: Built `clr_bridge.py` to transparently handle common marshalling issues between Python.NET and the legacy IronPython environment.
-2. **Automated Conversion**: Utilized a basic python `2to3` runner to handle syntactic updates (print statements, exception syntax).
-3. **AI-Assisted Linting**: Ran static analysis and utilized **Claude Code Opus 4.5** to intelligently resolve linting issues (successfully repairing all scripts except the complex `Autonumber.py`).
-4. **Trace-Driven Debugging**: Built the **Modern Script Console** with real-time Trace Functionality to capture execution flow.
-5. **Manual Adjustments**: Used the generated trace data to identify and fix obscure runtime failures in plugins that automated tools missed.
+### Script Compatibility
+Existing scripts were updated for Python 3.x compatibility:
+1. **Bridge Layer**: `clr_bridge.py` handles common marshalling differences between Python.NET and the original IronPython API.
+2. **Automated Conversion**: `2to3` for syntactic updates (print statements, exception syntax).
+3. **Static Analysis**: Linting and automated fixes for remaining compatibility issues.
+4. **Trace-Driven Debugging**: The Modern Script Console captures execution flow for diagnosing runtime issues.
 
 ### Developer Tools
-Debugging scripts in the old version was a nightmare. We've added:
-- **Modern Script Console**: A non-blocking, async console that doesn't freeze the UI.
-- **Trace Reports**: A built-in tracing system that generates detailed logs (`trace_report_*.log`) of every function call, line execution, and exception in your scripts.
+- **Modern Script Console**: A non-blocking, async console for script development.
+- **Trace Reports**: Detailed logs (`trace_report_*.log`) of function calls, line execution, and exceptions.
 
 ---
 

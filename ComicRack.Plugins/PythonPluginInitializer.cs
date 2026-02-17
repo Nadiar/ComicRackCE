@@ -22,12 +22,19 @@ namespace cYo.Projects.ComicRack.Plugins
 				try
 				{
 					string[] lines = File.ReadAllLines(file);
-					string name = null, key = null, image = null, description = null, hook = null;
+					string name = null, key = null, image = null, description = null, hook = null, engine = null;
 					int pcount = 0;
 					bool enabled = true;
+					bool hasPy2Syntax = false;
 
 					foreach (string line in lines)
 					{
+						// Basic Python 2 detection (print "string" without parens)
+						if (!hasPy2Syntax && line.Trim().StartsWith("print \"") || line.Trim().StartsWith("print '"))
+						{
+							hasPy2Syntax = true;
+						}
+
 						Match match = rxComment.Match(line);
 						if (match.Success)
 						{
@@ -41,6 +48,7 @@ namespace cYo.Projects.ComicRack.Plugins
 								case "image": image = propertyValue; break;
 								case "description": description = propertyValue; break;
 								case "hook": hook = propertyValue; break;
+								case "engine": engine = propertyValue; break;
 								case "pcount": int.TryParse(propertyValue, out pcount); break;
 								case "enabled": bool.TryParse(propertyValue, out enabled); break;
 							}
@@ -53,22 +61,41 @@ namespace cYo.Projects.ComicRack.Plugins
 							string functionName = match.Groups["function"].Value;
 							if (!string.IsNullOrEmpty(hook))
 							{
-								commands.Add(new PythonCommand
+								bool isLegacy = "IronPython27".Equals(engine, StringComparison.OrdinalIgnoreCase) || hasPy2Syntax;
+								
+								if (isLegacy)
 								{
-									Name = name ?? functionName,
-									Key = key ?? functionName,
-									Image = image,
-									Description = description,
-									Hook = hook,
-									PCount = pcount,
-									Enabled = enabled,
-									ScriptFile = file,
-									Method = functionName
-								});
+									commands.Add(new LegacyPythonCommand
+									{
+										Name = name ?? functionName,
+										Key = key ?? functionName,
+										Image = image,
+										Description = description,
+										Hook = hook,
+										PCount = pcount,
+										Enabled = enabled,
+										ScriptFile = file,
+										Method = functionName
+									});
+								}
+								else
+								{
+									commands.Add(new PythonCommand
+									{
+										Name = name ?? functionName,
+										Key = key ?? functionName,
+										Image = image,
+										Description = description,
+										Hook = hook,
+										PCount = pcount,
+										Enabled = enabled,
+										ScriptFile = file,
+										Method = functionName
+									});
+								}
 							}
-							// Reset metadata for the next function, except possibly for some "global" ones if desired,
-							// but usually it's one decorator per function.
-							name = key = image = description = hook = null;
+							// Reset metadata for the next function
+							name = key = image = description = hook = engine = null;
 							pcount = 0;
 							enabled = true;
 						}
