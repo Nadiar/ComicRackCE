@@ -194,6 +194,7 @@ jobs:
           gh label create "upstream-sync" --description "Automated upstream sync PR" --color "0E8A16" --repo "${{ github.repository }}" 2>/dev/null || true
 
       - name: Create Pull Request
+        id: create_pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH_NAME: ${{ steps.branch.outputs.branch_name }}
@@ -257,13 +258,43 @@ jobs:
           *Automated by [sync-upstream.yml](/.github/workflows/sync-upstream.yml)*"
           fi
 
-          gh pr create \
+          PR_URL=$(gh pr create \
             --repo "${{ github.repository }}" \
             --base "${{ env.TARGET_BRANCH }}" \
             --head "$BRANCH_NAME" \
             --title "$TITLE" \
             --body "$BODY" \
-            --label "upstream-sync"
+            --label "upstream-sync" 2>&1 | tail -1)
+
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+
+      - name: Assign Copilot for conflict resolution
+        if: steps.merge.outputs.merge_status == 'conflict'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ steps.create_pr.outputs.pr_url }}
+          UPSTREAM_SHA: ${{ needs.check-upstream.outputs.upstream_sha }}
+          UPSTREAM_SHA_SHORT: ${{ needs.check-upstream.outputs.upstream_sha_short }}
+        run: |
+          # Extract PR number from URL
+          PR_NUMBER=$(echo "$PR_URL" | grep -oP '\d+$')
+
+          # Comment on the PR asking Copilot to resolve the conflicts
+          gh pr comment "$PR_NUMBER" --body "@copilot Please resolve the merge conflicts in this PR.
+
+          ## Context
+
+          This is an automated upstream sync from \`maforget/ComicRackCE\` (master) into our \`dotnet9\` branch.
+          The upstream commit is [\`${UPSTREAM_SHA_SHORT}\`](https://github.com/${{ env.UPSTREAM_REPO }}/commit/${UPSTREAM_SHA}).
+
+          ## What to do
+
+          1. Checkout the \`dotnet9\` branch
+          2. Merge upstream commit \`${UPSTREAM_SHA}\` into it
+          3. Resolve any conflicts following the rules in \`.github/copilot-instructions.md\` (see **Conflict Resolution Rules**)
+          4. Key principle: **keep ALL code from both sides** — our \`dotnet9\` additions (Python tracing, LogManager, PythonRuntimeManager, Process.Kill failsafe) AND upstream's new features/guards
+          5. Verify the build succeeds: \`dotnet build ComicRack.sln -c Debug\`
+          "
 
       - name: Update sync state
         if: steps.merge.outputs.merge_status == 'clean'
