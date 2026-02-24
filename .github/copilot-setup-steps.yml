@@ -1,0 +1,14 @@
+# Setup steps for GitHub Copilot coding agent environment
+# This configures the agent's dev container so it can build and test the project
+
+setup:
+  - name: Setup .NET 9
+    uses: actions/setup-dotnet@v4
+    with:
+      dotnet-version: '9.0.x'
+
+  - name: Restore dependencies
+    run: dotnet restore ComicRack.sln
+
+  - name: Build (Debug)
+    run: dotnet build ComicRack.sln -c Debug --no-restore
