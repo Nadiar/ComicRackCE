@@ -1,0 +1,132 @@
+# Auto-merge upstream sync PRs after successful Release build
+# Handles two cases:
+#   1. Copilot sub-PRs that target a sync-upstream-* branch (from conflict resolution)
+#   2. Upstream-sync labeled PRs that target dotnet9 (the main sync PR)
+#
+# Full chain:
+#   Copilot resolves conflicts → sub-PR builds → auto-merge sub-PR →
+#   sync PR updated → builds → auto-merge sync PR → state updated
+
+name: Auto-merge Upstream Sync
+
+on:
+  workflow_run:
+    workflows: ["Pull Request - Artifact Upload"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Find auto-mergeable PR
+        id: find
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          echo "Release build succeeded for branch: $HEAD_BRANCH"
+
+          # --- Case 1: Upstream-sync PR (sync-upstream-* → dotnet9) ---
+          PR_JSON=$(gh pr list --repo "${{ github.repository }}" \
+            --head "$HEAD_BRANCH" \
+            --label "upstream-sync" \
+            --state open \
+            --json number,title,body,isDraft \
+            --jq '.[0] // empty')
+
+          if [ -n "$PR_JSON" ]; then
+            IS_DRAFT=$(echo "$PR_JSON" | jq -r '.isDraft')
+            if [ "$IS_DRAFT" = "true" ]; then
+              echo "PR is still a draft — skipping"
+              exit 0
+            fi
+
+            PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number')
+            echo "Found upstream-sync PR #$PR_NUMBER"
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "pr_type=upstream-sync" >> $GITHUB_OUTPUT
+
+            # Extract upstream SHA from PR body (commit URL has full 40-char SHA)
+            UPSTREAM_SHA=$(echo "$PR_JSON" | jq -r '.body' | grep -oP '(?<=commit/)[0-9a-f]{40}' | head -1)
+            echo "upstream_sha=$UPSTREAM_SHA" >> $GITHUB_OUTPUT
+            echo "upstream_sha_short=${UPSTREAM_SHA:0:7}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # --- Case 2: Copilot sub-PR targeting a sync branch ---
+          PR_JSON=$(gh pr list --repo "${{ github.repository }}" \
+            --head "$HEAD_BRANCH" \
+            --state open \
+            --json number,baseRefName,isDraft,author \
+            --jq '[.[] | select(.baseRefName | startswith("sync-upstream-"))][0] // empty')
+
+          if [ -n "$PR_JSON" ]; then
+            IS_DRAFT=$(echo "$PR_JSON" | jq -r '.isDraft')
+            if [ "$IS_DRAFT" = "true" ]; then
+              echo "Copilot sub-PR is still a draft — skipping"
+              exit 0
+            fi
+
+            PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number')
+            AUTHOR=$(echo "$PR_JSON" | jq -r '.author.login')
+            echo "Found sub-PR #$PR_NUMBER by $AUTHOR targeting sync branch"
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "pr_type=copilot-sub-pr" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "No auto-mergeable PR found for branch $HEAD_BRANCH"
+
+      - name: Auto-merge PR
+        if: steps.find.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.find.outputs.pr_number }}
+          PR_TYPE: ${{ steps.find.outputs.pr_type }}
+        run: |
+          echo "::notice::Auto-merging $PR_TYPE PR #$PR_NUMBER after successful Release build"
+          gh pr merge "$PR_NUMBER" --merge --repo "${{ github.repository }}" --delete-branch
+
+      - name: Update sync state
+        if: steps.find.outputs.pr_type == 'upstream-sync' && steps.find.outputs.upstream_sha != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.find.outputs.pr_number }}
+          UPSTREAM_SHA: ${{ steps.find.outputs.upstream_sha }}
+          UPSTREAM_SHA_SHORT: ${{ steps.find.outputs.upstream_sha_short }}
+        run: |
+          # Build state JSON
+          STATE_JSON=$(jq -n \
+            --arg sha "$UPSTREAM_SHA" \
+            --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg pr "$PR_NUMBER" \
+            '{last_synced_sha: $sha, last_sync_date: $date, last_sync_pr: $pr}')
+
+          CONTENT=$(echo -n "$STATE_JSON" | base64 -w 0)
+
+          # Get current file SHA (needed for update API)
+          FILE_SHA=$(gh api "repos/${{ github.repository }}/contents/.github/upstream-sync-state.json?ref=dotnet9" \
+            --jq '.sha' 2>/dev/null || echo "")
+
+          # Create or update the state file via GitHub API (no clone needed)
+          API_ARGS=(
+            --method PUT
+            -f "message=chore: update upstream sync state to $UPSTREAM_SHA_SHORT"
+            -f "content=$CONTENT"
+            -f "branch=dotnet9"
+          )
+
+          if [ -n "$FILE_SHA" ]; then
+            API_ARGS+=(-f "sha=$FILE_SHA")
+          fi
+
+          gh api "repos/${{ github.repository }}/contents/.github/upstream-sync-state.json" \
+            "${API_ARGS[@]}"
+
+          echo "Sync state updated to $UPSTREAM_SHA_SHORT"
