@@ -49,6 +49,7 @@ using cYo.Common.Windows.Forms.Theme;
 using cYo.Common.Windows.Forms.Theme.Resources;
 using cYo.Projects.ComicRack.Plugins.Theme;
 using cYo.Projects.ComicRack.Engine.Backup;
+using ComicRack.Plugins;
 
 namespace cYo.Projects.ComicRack.Viewer
 {
@@ -1044,18 +1045,70 @@ namespace cYo.Projects.ComicRack.Viewer
 		{
 			try
 			{
+				LogManager.Debug("System", "CleanUp: Starting shutdown sequence...");
+
+				// Detach output first to avoid deadlocks during shutdown
+				PythonCommand.Output = null;
+
+				// Close ScriptConsole with timeout - don't use InvokeIfRequired which can deadlock
+				LogManager.Debug("System", "CleanUp: Closing ScriptConsole...");
+				if (ScriptConsole != null && !ScriptConsole.IsDisposed)
+				{
+					try
+					{
+						// Use BeginInvoke (async) instead of Invoke to avoid deadlock
+						if (ScriptConsole.InvokeRequired)
+						{
+							ScriptConsole.BeginInvoke(new Action(() =>
+							{
+								try { ScriptConsole.Close(); } catch { }
+							}));
+							// Give it a moment but don't wait indefinitely
+							Thread.Sleep(100);
+						}
+						else
+						{
+							ScriptConsole.Close();
+						}
+					}
+					catch { }
+				}
+
+				LogManager.Debug("System", "CleanUp: Disposing NetworkManager...");
 				NetworkManager.Dispose();
+
 				SystemEvents.PowerModeChanged -= SystemEventsPowerModeChanged;
+
+				LogManager.Debug("System", "CleanUp: Disposing QueueManager...");
 				QueueManager.Dispose();
+
+				LogManager.Debug("System", "CleanUp: Saving News...");
 				News.Save(defaultNewsFile);
+
+				LogManager.Debug("System", "CleanUp: Saving Settings...");
 				Settings.Save(defaultSettingsFile);
+
+				LogManager.Debug("System", "CleanUp: Disposing ImagePool...");
 				ImagePool.Dispose();
+
+				LogManager.Debug("System", "CleanUp: Disposing DatabaseManager...");
 				DatabaseManager.Dispose();
+
+				LogManager.Debug("System", "CleanUp: Shutting down Python...");
+				PythonRuntimeManager.Instance.Shutdown();
+
+				LogManager.Debug("System", "CleanUp: Running backup if enabled...");
 				if (!ExtendedSettings.DisableBackupManager && Settings.BackupManager.OnExit) BackupManager.RunBackup(false);
+
+				LogManager.Debug("System", "CleanUp: Complete. Calling Process.Kill()...");
+				// Final failsafe to ensure process termination
+				System.Diagnostics.Process.GetCurrentProcess().Kill();
 			}
 			catch (Exception ex)
 			{
-				MessageBox.Show(StringUtility.Format(TR.Messages["ErrorShutDown", "There was an error shutting down the application:\r\n{0}"], ex.Message), TR.Messages["Error", "Error"], MessageBoxButtons.OK, MessageBoxIcon.Hand);
+				LogManager.Error("System", $"CleanUp error: {ex.Message}");
+				// Don't show MessageBox during shutdown - just exit
+				System.Diagnostics.Process.GetCurrentProcess().Kill();
 			}
 		}
 
