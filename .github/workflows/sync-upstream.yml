@@ -178,12 +178,12 @@ jobs:
             echo "$CONFLICTED" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
 
-            # Abort merge but KEEP the branch based on dotnet9.
-            # This ensures our .NET 9 build system, workflows, and project
-            # structure are present so Copilot can build and test its changes.
-            # The old approach (git reset --hard to upstream) put .NET 4.8 code
-            # on the branch, causing build failures when dotnet9-only code was added.
-            git merge --abort
+            # Stage conflicted files so the conflicted state is committed.
+            # Copilot will check out this branch, find the conflict markers,
+            # resolve them, and push the fix. This ensures our .NET 9 build
+            # system stays intact (we never reset --hard to upstream code).
+            git add -A
+            git commit -m "wip: conflicted merge from upstream ${UPSTREAM_SHA_SHORT} - needs resolution"
           fi
 
           echo "::endgroup::"
@@ -314,14 +314,15 @@ jobs:
 
           ## What to do
 
-          1. You are on the \`sync-upstream-${UPSTREAM_SHA_SHORT}\` branch (based on \`dotnet9\`)
-          2. Run: \`git fetch origin && git merge ${UPSTREAM_SHA}\`
-          3. Resolve conflicts in the files listed above
+          1. Check out the \`sync-upstream-${UPSTREAM_SHA_SHORT}\` branch — it is based on \`dotnet9\` (.NET 9)
+          2. The most recent commit already contains the conflicted merge attempt (look for \`<<<<<<<\`, \`=======\`, \`>>>>>>>\` markers in the files above)
+          3. Open each conflicted file and resolve the conflict markers
           4. Follow the conflict resolution rules in \`.github/copilot-instructions.md\`
           5. Key principle: **keep ALL code from both sides** — our \`dotnet9\` additions AND upstream's new features/guards
-          6. Do NOT add new \`using\` directives unless the code being added requires them and they already exist in the project
-          7. Verify: \`dotnet build ComicRack.sln -c Debug\`
-          8. Commit the resolved merge
+          6. Do NOT add new \`using\` directives unless they already exist in the project
+          7. After resolving, run: \`git add . && git commit --amend --no-edit\` (or a new commit)
+          8. Verify: \`dotnet build ComicRack.sln -c Debug\`
+          9. Push the branch
           "
 
       - name: Update sync state
