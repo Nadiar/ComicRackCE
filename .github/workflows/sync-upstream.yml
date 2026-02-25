@@ -171,12 +171,19 @@ jobs:
             echo "::warning::Merge has conflicts that need manual resolution"
 
             # List conflicted files
+            CONFLICTED=$(git diff --name-only --diff-filter=U)
             echo "Conflicted files:"
-            git diff --name-only --diff-filter=U
+            echo "$CONFLICTED"
+            echo "conflicted_files<<EOF" >> $GITHUB_OUTPUT
+            echo "$CONFLICTED" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
 
-            # Abort merge - point branch at upstream so PR shows the diff
+            # Abort merge but KEEP the branch based on dotnet9.
+            # This ensures our .NET 9 build system, workflows, and project
+            # structure are present so Copilot can build and test its changes.
+            # The old approach (git reset --hard to upstream) put .NET 4.8 code
+            # on the branch, causing build failures when dotnet9-only code was added.
             git merge --abort
-            git reset --hard "$UPSTREAM_SHA"
           fi
 
           echo "::endgroup::"
@@ -229,9 +236,9 @@ jobs:
           *Automated by [sync-upstream.yml](/.github/workflows/sync-upstream.yml)*"
           else
             TITLE="⚠️ Sync upstream: ${UPSTREAM_SHA_SHORT} (conflicts)"
-            BODY="## Upstream Sync (Manual Merge Required)
+            BODY="## Upstream Sync (Conflicts - Copilot Resolving)
 
-          This PR attempts to merge changes from [maforget/ComicRackCE](https://github.com/${{ env.UPSTREAM_REPO }}).
+          This PR syncs changes from [maforget/ComicRackCE](https://github.com/${{ env.UPSTREAM_REPO }}).
 
           ### Details
           - **Upstream commit:** [\`${UPSTREAM_SHA_SHORT}\`](https://github.com/${{ env.UPSTREAM_REPO }}/commit/${UPSTREAM_SHA})
@@ -240,15 +247,18 @@ jobs:
           - **Previous sync:** ${LAST_SHA:-none}
 
           ### Status
-          ⚠️ **Merge has conflicts** - manual resolution required.
+          ⚠️ **Merge has conflicts** - Copilot coding agent will attempt automatic resolution.
 
-          ### Manual Merge Steps
+          The branch is based on \`dotnet9\` (.NET 9). Copilot will merge upstream into it and resolve conflicts.
+
+          ### Manual Fallback
+          If Copilot cannot resolve, merge manually:
           \`\`\`bash
           git fetch origin ${BRANCH_NAME}
           git checkout ${BRANCH_NAME}
-          git fetch upstream ${UPSTREAM_SHA}
           git merge ${UPSTREAM_SHA}
           # Resolve conflicts...
+          dotnet build ComicRack.sln -c Debug
           git add .
           git commit
           git push
@@ -275,6 +285,7 @@ jobs:
           PR_URL: ${{ steps.create_pr.outputs.pr_url }}
           UPSTREAM_SHA: ${{ needs.check-upstream.outputs.upstream_sha }}
           UPSTREAM_SHA_SHORT: ${{ needs.check-upstream.outputs.upstream_sha_short }}
+          CONFLICTED_FILES: ${{ steps.merge.outputs.conflicted_files }}
         run: |
           # Extract PR number from URL
           PR_NUMBER=$(echo "$PR_URL" | grep -oP '\d+$')
@@ -287,13 +298,30 @@ jobs:
           This is an automated upstream sync from \`maforget/ComicRackCE\` (master) into our \`dotnet9\` branch.
           The upstream commit is [\`${UPSTREAM_SHA_SHORT}\`](https://github.com/${{ env.UPSTREAM_REPO }}/commit/${UPSTREAM_SHA}).
 
+          ## IMPORTANT: Build System
+
+          This branch is based on our \`dotnet9\` branch (.NET 9.0). Build with:
+          \`\`\`bash
+          dotnet build ComicRack.sln -c Debug
+          \`\`\`
+          Do NOT use \`msbuild\` — that is the upstream .NET Framework 4.8 build system.
+
+          ## Conflicted files
+
+          \`\`\`
+          ${CONFLICTED_FILES}
+          \`\`\`
+
           ## What to do
 
-          1. Checkout the \`dotnet9\` branch
-          2. Merge upstream commit \`${UPSTREAM_SHA}\` into it
-          3. Resolve any conflicts following the rules in \`.github/copilot-instructions.md\` (see **Conflict Resolution Rules**)
-          4. Key principle: **keep ALL code from both sides** — our \`dotnet9\` additions (Python tracing, LogManager, PythonRuntimeManager, Process.Kill failsafe) AND upstream's new features/guards
-          5. Verify the build succeeds: \`dotnet build ComicRack.sln -c Debug\`
+          1. You are on the \`sync-upstream-${UPSTREAM_SHA_SHORT}\` branch (based on \`dotnet9\`)
+          2. Run: \`git fetch origin && git merge ${UPSTREAM_SHA}\`
+          3. Resolve conflicts in the files listed above
+          4. Follow the conflict resolution rules in \`.github/copilot-instructions.md\`
+          5. Key principle: **keep ALL code from both sides** — our \`dotnet9\` additions AND upstream's new features/guards
+          6. Do NOT add new \`using\` directives unless the code being added requires them and they already exist in the project
+          7. Verify: \`dotnet build ComicRack.sln -c Debug\`
+          8. Commit the resolved merge
           "
 
       - name: Update sync state
