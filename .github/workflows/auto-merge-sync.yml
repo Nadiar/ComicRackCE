@@ -75,9 +75,28 @@ jobs:
 
             PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number')
             AUTHOR=$(echo "$PR_JSON" | jq -r '.author.login')
-            echo "Found sub-PR #$PR_NUMBER by $AUTHOR targeting sync branch"
+            SYNC_BRANCH=$(echo "$PR_JSON" | jq -r '.baseRefName')
+            echo "Found sub-PR #$PR_NUMBER by $AUTHOR targeting sync branch $SYNC_BRANCH"
             echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
             echo "pr_type=copilot-sub-pr" >> $GITHUB_OUTPUT
+            echo "sync_branch=$SYNC_BRANCH" >> $GITHUB_OUTPUT
+
+            # Also find the parent upstream-sync PR to chain-merge after
+            PARENT_PR=$(gh pr list --repo "${{ github.repository }}" \
+              --head "$SYNC_BRANCH" \
+              --label "upstream-sync" \
+              --state open \
+              --json number,body \
+              --jq '.[0] // empty')
+
+            if [ -n "$PARENT_PR" ]; then
+              PARENT_NUMBER=$(echo "$PARENT_PR" | jq -r '.number')
+              UPSTREAM_SHA=$(echo "$PARENT_PR" | jq -r '.body' | grep -oP '(?<=commit/)[0-9a-f]{40}' | head -1)
+              echo "Found parent sync PR #$PARENT_NUMBER"
+              echo "parent_pr_number=$PARENT_NUMBER" >> $GITHUB_OUTPUT
+              echo "upstream_sha=$UPSTREAM_SHA" >> $GITHUB_OUTPUT
+              echo "upstream_sha_short=${UPSTREAM_SHA:0:7}" >> $GITHUB_OUTPUT
+            fi
             exit 0
           fi
 
@@ -89,12 +108,21 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.find.outputs.pr_number }}
           PR_TYPE: ${{ steps.find.outputs.pr_type }}
+          PARENT_PR_NUMBER: ${{ steps.find.outputs.parent_pr_number }}
         run: |
           echo "::notice::Auto-merging $PR_TYPE PR #$PR_NUMBER after successful Release build"
           gh pr merge "$PR_NUMBER" --merge --repo "${{ github.repository }}" --delete-branch
 
+          # For Copilot sub-PRs, also merge the parent upstream-sync PR (chain)
+          # The build passed for the Copilot's code, so the parent PR is now clean too.
+          # We can't wait for another workflow_run because GITHUB_TOKEN merges don't re-trigger workflows.
+          if [ -n "$PARENT_PR_NUMBER" ]; then
+            echo "::notice::Chain-merging parent upstream-sync PR #$PARENT_PR_NUMBER"
+            gh pr merge "$PARENT_PR_NUMBER" --merge --repo "${{ github.repository }}" --delete-branch
+          fi
+
       - name: Update sync state
-        if: steps.find.outputs.pr_type == 'upstream-sync' && steps.find.outputs.upstream_sha != ''
+        if: steps.find.outputs.upstream_sha != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.find.outputs.pr_number }}
