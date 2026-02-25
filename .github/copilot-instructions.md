@@ -55,10 +55,12 @@ When resolving upstream sync conflicts:
 
 **Step-by-step process:**
 1. You are on a `sync-upstream-*` branch based on `dotnet9` (our .NET 9 code)
-2. Run: `git merge <upstream_sha>` to merge upstream changes
-3. Resolve any conflicts in the files listed
-4. Run: `dotnet build ComicRack.sln -c Debug` to verify the build
-5. Commit the merge
+2. The latest commit on the branch **already contains the conflicted merge** — look for `<<<<<<<`, `=======`, `>>>>>>>` conflict markers in the listed files
+3. Open each conflicted file and resolve the markers (keep code from both sides per the rules below)
+4. Stage the resolved files: `git add <file>`
+5. Amend the commit: `git commit --amend --no-edit` (or create a new commit)
+6. Verify the build: `dotnet build ComicRack.sln -c Debug`
+7. Push the branch
 
 **Rules:**
 
