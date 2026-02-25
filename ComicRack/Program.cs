@@ -1110,20 +1110,16 @@ namespace cYo.Projects.ComicRack.Viewer
 
 				LogManager.Debug("System", "CleanUp: Disposing DatabaseManager...");
 				DatabaseManager.Dispose();
-<<<<<<< HEAD
 
 				LogManager.Debug("System", "CleanUp: Shutting down Python...");
 				PythonRuntimeManager.Instance.Shutdown();
 
 				LogManager.Debug("System", "CleanUp: Running backup if enabled...");
-				if (Settings.BackupManager.OnExit) BackupManager.RunBackup(false);
+				if (!ExtendedSettings.DisableBackupManager && Settings.BackupManager.OnExit) BackupManager.RunBackup(false);
 
 				LogManager.Debug("System", "CleanUp: Complete. Calling Process.Kill()...");
 				// Final failsafe to ensure process termination
 				System.Diagnostics.Process.GetCurrentProcess().Kill();
-=======
-				if (!ExtendedSettings.DisableBackupManager && Settings.BackupManager.OnExit) BackupManager.RunBackup(false);
->>>>>>> 5ad961cd83f2372a74788023efd2f9267973eeea
 			}
 			catch (Exception ex)
 			{
