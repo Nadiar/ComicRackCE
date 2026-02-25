@@ -6,8 +6,20 @@ ComicRack Community Edition is a Windows desktop comic book reader and library m
 It is a .NET 9 Windows Forms application with Python scripting support via Python.NET.
 
 - **Solution:** `ComicRack.sln`
-- **Framework:** .NET 9.0-windows
-- **Build:** `dotnet build ComicRack.sln -c Debug`
+- **Framework:** .NET 9.0-windows (our `dotnet9` branch)
+- **Build command:** `dotnet build ComicRack.sln -c Debug`
+- **Build verification (Release):** `dotnet build ComicRack\ComicRack.csproj -c Release`
+
+### CRITICAL: .NET 9 vs Upstream .NET Framework 4.8
+
+The upstream repo (`maforget/ComicRackCE` master) targets **.NET Framework 4.8** and builds with `msbuild`.
+Our `dotnet9` branch targets **.NET 9.0-windows** and builds with `dotnet build`.
+
+Key differences:
+- Our branch has `ComicRack.Plugins` project with `LogManager`, `PythonRuntimeManager`, `PythonCommand`
+- Our branch has `ComicRack.Plugins.LegacyHost` project for IronPython sidecar
+- Upstream does NOT have these projects — do NOT add `using ComicRack.Plugins;` to upstream code
+- When resolving conflicts, the sync branch is based on `dotnet9` (our code), and you merge upstream into it
 
 ## Repository Structure
 
@@ -41,6 +53,15 @@ into our `dotnet9` branch. When merge conflicts occur, the PR needs manual resol
 
 When resolving upstream sync conflicts:
 
+**Step-by-step process:**
+1. You are on a `sync-upstream-*` branch based on `dotnet9` (our .NET 9 code)
+2. Run: `git merge <upstream_sha>` to merge upstream changes
+3. Resolve any conflicts in the files listed
+4. Run: `dotnet build ComicRack.sln -c Debug` to verify the build
+5. Commit the merge
+
+**Rules:**
+
 1. **Always preserve both sides' intent:**
    - Our `dotnet9` additions (Python tracing, logging, sidecar hosting) must be kept
    - Upstream's new features and fixes must be integrated
@@ -52,6 +73,7 @@ When resolving upstream sync conflicts:
    - Our branch has `Restart` logic in `CleanUp()` (restart process before kill)
    - Upstream may add new guards (e.g., `!ExtendedSettings.DisableBackupManager`)
    - **Resolution:** Keep our logging/Python shutdown/kill sequence AND apply upstream's guard conditions
+   - The `using ComicRack.Plugins;` directive is ALREADY present in our dotnet9 branch — do not add it if not there
 
 3. **For `ExtendedSettings.cs` conflicts:**
    - Our branch may add new settings, upstream may add different ones
@@ -73,4 +95,15 @@ When resolving upstream sync conflicts:
 
 ## Build Verification
 
-After any change, verify: `dotnet build ComicRack.sln -c Debug`
+After any change, verify:
+```bash
+dotnet build ComicRack.sln -c Debug
+```
+
+For Release verification (matches CI):
+```bash
+dotnet build ComicRack\ComicRack.csproj -c Release
+```
+
+**Important:** Do NOT use `msbuild` — that is the upstream's .NET Framework 4.8 build system.
+Our branch always uses `dotnet build`.
