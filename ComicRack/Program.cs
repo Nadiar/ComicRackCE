@@ -885,7 +885,7 @@ namespace cYo.Projects.ComicRack.Viewer
 				QueueManager = new QueueManager(DatabaseManager, CacheManager, Settings, Settings.Devices);
 				QueueManager.ComicScanned += ScannerCheckFileIgnore;
 				BackupManager = new BackupManager(Settings.BackupManager, Paths, defaultSettingsFile, DefaultListsFile, DefaultIconPackagesPath);
-				if(Settings.BackupManager.OnStartup) BackupManager.RunBackup();
+				if(!ExtendedSettings.DisableBackupManager && Settings.BackupManager.OnStartup) BackupManager.RunBackup();
 				Settings.IgnoredCoverImagesChanged += IgnoredCoverImagesChanged;
 				IgnoredCoverImagesChanged(null, EventArgs.Empty);
 				SystemEvents.PowerModeChanged += SystemEventsPowerModeChanged;
@@ -1110,6 +1110,7 @@ namespace cYo.Projects.ComicRack.Viewer
 
 				LogManager.Debug("System", "CleanUp: Disposing DatabaseManager...");
 				DatabaseManager.Dispose();
+<<<<<<< HEAD
 
 				LogManager.Debug("System", "CleanUp: Shutting down Python...");
 				PythonRuntimeManager.Instance.Shutdown();
@@ -1120,6 +1121,9 @@ namespace cYo.Projects.ComicRack.Viewer
 				LogManager.Debug("System", "CleanUp: Complete. Calling Process.Kill()...");
 				// Final failsafe to ensure process termination
 				System.Diagnostics.Process.GetCurrentProcess().Kill();
+=======
+				if (!ExtendedSettings.DisableBackupManager && Settings.BackupManager.OnExit) BackupManager.RunBackup(false);
+>>>>>>> 5ad961cd83f2372a74788023efd2f9267973eeea
 			}
 			catch (Exception ex)
 			{
