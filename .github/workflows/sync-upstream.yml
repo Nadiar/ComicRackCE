@@ -121,6 +121,10 @@ jobs:
     needs: check-upstream
     if: needs.check-upstream.outputs.should_sync == 'true' && inputs.dry_run != true
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
 
     steps:
       - name: Checkout
