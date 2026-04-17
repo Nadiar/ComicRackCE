@@ -1116,10 +1116,14 @@ namespace cYo.Projects.ComicRack.Viewer
 
 				LogManager.Debug("System", "CleanUp: Running backup if enabled...");
 				if (!ExtendedSettings.DisableBackupManager && Settings.BackupManager.OnExit) BackupManager.RunBackup(false);
+<<<<<<< HEAD
 
 				LogManager.Debug("System", "CleanUp: Complete. Calling Process.Kill()...");
 				// Final failsafe to ensure process termination
 				System.Diagnostics.Process.GetCurrentProcess().Kill();
+=======
+				BackupManager.Dispose();
+>>>>>>> 7a0f8b33596e836ed95985bccf85f1906a7682fd
 			}
 			catch (Exception ex)
 			{
