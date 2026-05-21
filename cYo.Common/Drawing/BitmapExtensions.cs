@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using cYo.Common.ComponentModel;
 using cYo.Common.Runtime;
 using System.Runtime.InteropServices;
@@ -631,6 +632,7 @@ namespace cYo.Common.Drawing
 			}
         }
 
+<<<<<<< HEAD
 		/// <summary>
 		/// Create a Icon that calls DestroyIcon() when the Destructor is called.
 		/// Unfortunatly Icon.FromHandle() initializes with the internal Icon-constructor Icon(handle, false), which sets the internal value "ownHandle" to false
@@ -659,4 +661,30 @@ namespace cYo.Common.Drawing
 			}
 		}
 	}
+=======
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool DestroyIcon(IntPtr hIcon);
+
+        public static Icon BitmapToIcon(this Bitmap bitmap)
+        {
+            IntPtr hIcon = bitmap.GetHicon();
+            try
+            {
+                using (Icon temp = Icon.FromHandle(hIcon))
+                {
+                    return (Icon)temp.Clone();
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                DestroyIcon(hIcon);
+            }
+        }
+    }
+>>>>>>> 551b3cad40eaea01f3f82db50d04b84d6095c31c
 }
