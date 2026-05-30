@@ -159,7 +159,9 @@ namespace cYo.Projects.ComicRack.Engine
 
 		private readonly SmartList<DeviceSyncError> deviceSyncErrors = new SmartList<DeviceSyncError>();
 
-		private static string refreshInfoQueueMessage;
+		private readonly SmartList<(string Item, string Message)> updateErrors = new SmartList<(string Item, string Message)>();
+
+        private static string refreshInfoQueueMessage;
 
 		private static string writeInfoQueueMessage;
 
@@ -282,7 +284,9 @@ namespace cYo.Projects.ComicRack.Engine
 
 		public SmartList<DeviceSyncError> DeviceSyncErrors => deviceSyncErrors;
 
-		public int PendingComicConversions => ExportComicsQueue.Count;
+		public SmartList<(string Item, string Message)> UpdateErrors => updateErrors;
+
+        public int PendingComicConversions => ExportComicsQueue.Count;
 
 		public bool IsInComicConversion => ExportComicsQueue.IsActive;
 
@@ -324,13 +328,14 @@ namespace cYo.Projects.ComicRack.Engine
 			CacheManager = cacheManager;
 			Settings = settings;
 			Devices = devices;
-			UpdateComicBookDynamicQueue = new ProcessingQueue<ComicBook>("Update Dynamic Books", ThreadPriority.Lowest)
+            int threadCount = Environment.ProcessorCount.Clamp(1, EngineConfiguration.Default.MaximumUpdateThreads);
+            UpdateComicBookDynamicQueue = new ProcessingQueue<ComicBook>("Update Dynamic Books", ThreadPriority.Lowest)
 			{
 				DefaultProcessingQueueAddMode = ProcessingQueueAddMode.AddToTop
 			};
 			ExportComicsQueue = new ProcessingQueue<ComicBook>("Export Books", ThreadPriority.Lowest);
 			ReadComicBookInfoFileQueue = new ProcessingQueue<ComicBook>("Read Book File Information", ThreadPriority.Lowest);
-			WriteComicBookInfoFileQueue = new ProcessingQueue<ComicBook>("Write Book File Information", ThreadPriority.Lowest)
+			WriteComicBookInfoFileQueue = new ProcessingQueue<ComicBook>(threadCount, "Write Book File Information", ThreadPriority.Lowest, int.MaxValue)
 			{
 				DefaultProcessingQueueAddMode = ProcessingQueueAddMode.AddToTop
 			};
@@ -533,33 +538,40 @@ namespace cYo.Projects.ComicRack.Engine
 		public void WriteInfoToFileWithCacheUpdate(ComicBook cb)
 		{
 			try
-			{
-				while (CacheManager.ImagePool.AreImagesPending(cb.FilePath))
-				{
-					Thread.Sleep(1000);
-				}
-				long oldSize = cb.FileSize;
-				DateTime oldWrite = cb.FileModifiedTime;
-				if (cb.WriteInfoToFile(withRefreshFileProperties: false))
-				{
-					CacheManager.ImagePool.Pages.UpdateKeys((ImageKey key) => key.IsSameFile(cb.FilePath, oldSize, oldWrite), delegate (ImageKey key)
-					{
-						key.UpdateFileInfo();
-					});
-					CacheManager.ImagePool.Thumbs.UpdateKeys((ImageKey key) => key.IsSameFile(cb.FilePath, oldSize, oldWrite), delegate (ImageKey key)
-					{
-						key.UpdateFileInfo();
-					});
-					cb.RefreshFileProperties();
-					cb.ComicInfoIsDirty = false;
-				}
-			}
-			catch (Exception)
-			{
-			}
-		}
+            {
+                while (CacheManager.ImagePool.AreImagesPending(cb.FilePath))
+                {
+                    Thread.Sleep(1000);
+                }
+                long oldSize = cb.FileSize;
+                DateTime oldWrite = cb.FileModifiedTime;
+                cb.WriteError += (object s, IO.Provider.ErrorEventArgs e) => AddUpdateErrors(cb, e); // Write error to the list of update errors to be shown in the UI.
+                if (cb.WriteInfoToFile(withRefreshFileProperties: false))
+                {
+                    CacheManager.ImagePool.Pages.UpdateKeys((ImageKey key) => key.IsSameFile(cb.FilePath, oldSize, oldWrite), (ImageKey key) => key.UpdateFileInfo());
+                    CacheManager.ImagePool.Thumbs.UpdateKeys((ImageKey key) => key.IsSameFile(cb.FilePath, oldSize, oldWrite), (ImageKey key) => key.UpdateFileInfo());
 
-		public bool SynchronizeDevices()
+                    cb.RefreshFileProperties();
+                    cb.ComicInfoIsDirty = false;
+                }
+            }
+            catch (Exception)
+			{
+			}
+			finally
+			{
+                cb.WriteError -= (object s, IO.Provider.ErrorEventArgs e) => AddUpdateErrors(cb, e); // Remove the error handler since we only want to track errors for this specific update.
+            }
+
+            void AddUpdateErrors(ComicBook cb, IO.Provider.ErrorEventArgs e) => UpdateErrors.Add((cb.FileNameWithExtension, e.Message));
+        }
+
+        private void Cb_Error(object sender, IO.Provider.ErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SynchronizeDevices()
 		{
 			foreach (DeviceSyncSettings device in Devices)
 			{
